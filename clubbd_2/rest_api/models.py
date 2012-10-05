@@ -30,7 +30,7 @@ class Utilisateur(models.Model):
 class Categorie(models.Model):
     prefix = models.IntegerField(primary_key=True)
     nom = models.CharField(unique=True, max_length=64)
-    
+
 class Serie(models.Model):
     nom = models.CharField(max_length=64)
     prefix = models.CharField(max_length=6)

@@ -2,16 +2,23 @@ import models, json
 from django.db.models import Q
 from django.http import HttpResponse
 import datetime
+from django.core.exceptions import ObjectDoesNotExist
+
+def json_date(obj):
+    if type(obj) == datetime.date:
+        return obj.strftime("%d/%m/%Y")
+    else:
+        raise TypeError
 
 def restify_one(o, jsonify):
     del o.__dict__['_state']
     
     if jsonify:
-        return json.dumps(o.__dict__)
+        return json.dumps(o.__dict__, default=json_date)
     else:
         return o.__dict__
 
-    return json.dumps(o.__dict__)
+    return json.dumps(o.__dict__, default=json_date)
 
 
 def restify_list(l, jsonify):
@@ -20,10 +27,8 @@ def restify_list(l, jsonify):
         del o.__dict__['_state']
         res += [o.__dict__]
 
-    return json.dumps(res)
-
     if jsonify:
-        return json.dumps(res)
+        return json.dumps(res, default=json_date)
     else:
         return res
 
@@ -32,10 +37,6 @@ def restify(o, json=True):
         return restify_list(o, json)
     else:
         return restify_one(o, json)
-
-def json_date(obj):
-    if type(obj) == datetime.date:
-        return obj.strftime("%d/%m/%Y")
 
 # Create your views here.
 def get_users(request):
@@ -58,6 +59,8 @@ def get_ouvrages(request):
     def transform(el):
         res = restify(el, json=False)
 
+        del res['ouvrage_ptr_id']
+
         if "Volume" in str(type(el)):
             res['in_serie'] = True
         else:
@@ -69,6 +72,19 @@ def get_ouvrages(request):
     oneshots = map(transform, oneshots)
 
     return HttpResponse(json.dumps(volumes + oneshots, default=json_date), content_type="application/json")
+
+def get_ouvrage_by_id(request, id):
+    try:
+        el = models.Volume.objects.get(pk=id)
+        el.__dict__['in_serie'] = True
+    except ObjectDoesNotExist:
+        el = models.Volume.objects.get(pk=id)
+        el.__dict__['in_serie'] = False
+
+    del el.__dict__['ouvrage_ptr_id']
+
+    return HttpResponse(restify(el), content_type="application/json")
+
 
 def get_editors(request):
     editors = models.Editeur.objects.all() 

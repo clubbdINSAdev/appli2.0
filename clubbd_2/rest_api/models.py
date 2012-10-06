@@ -24,7 +24,7 @@ class Utilisateur(models.Model):
     nom = models.CharField(max_length=64)
     prenom = models.CharField(max_length=64)
     mail = models.EmailField()
-    telephone = models.BigIntegerField()
+    telephone = models.CharField(max_length=64)
     adresse = models.TextField()
 
 class Categorie(models.Model):

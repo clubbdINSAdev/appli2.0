@@ -66,7 +66,7 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
 
 
 def mk_editeurs(cursor):
-    cursor.execute("SELECT * FROM editor WHERE name != ''")
+    cursor.execute("SELECT * FROM editor WHERE name != '';")
 
     d = dict()
 
@@ -246,15 +246,31 @@ def mk_series(cursor):
 
     return d
 
+def mk_utilisateurs(cursor):
+    cursor.execute("SELECT * FROM user;")
+
+    for row in dictfetchall(cursor):
+        u = rest_api.models.Utilisateur(
+            id=row['student_number'],
+            nom=row['lastname'],
+            prenom=row['firstname'],
+            mail=row['mail'],
+            telephone=row['phone'],
+            adresse=row['address']
+        )
+        u.save()
+
 def mk_all():
     cursor = connections['old'].cursor()
     cursor.execute("DELETE FROM serial WHERE title = 'One Shot';")
     cursor.execute("DELETE FROM book WHERE reference = '';")
+    cursor.execute("DELETE FROM user WHERE student_number = '';")
 
     new_editeurs = mk_editeurs(cursor)
     mk_categories()
     new_series = mk_series(cursor)
     mk_ouvrages(cursor, new_series, new_editeurs)
+    mk_utilisateurs(cursor)
     # ...
 
 

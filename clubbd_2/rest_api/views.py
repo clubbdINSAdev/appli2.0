@@ -57,3 +57,18 @@ def search_categories_by_name(request, name):
     categories = models.Categorie.objects.filter(nom__icontains=name)
 
     return HttpResponse(restify(categories), content_type="application/json")
+
+def get_series(request):
+    series = models.Serie.objects.all() 
+
+    return HttpResponse(restify(series), content_type="application/json")
+
+def search_series_by_name(request, name):
+    series = models.Serie.objects.filter(nom__icontains=name)
+
+    return HttpResponse(restify(series), content_type="application/json")
+
+def search_series_by_categorie(request, categorie_id):
+    series = models.Serie.objects.filter(categorie=categorie_id)
+
+    return HttpResponse(restify(series), content_type="application/json")

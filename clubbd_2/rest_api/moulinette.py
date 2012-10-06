@@ -11,24 +11,25 @@ def dictfetchall(cursor):
         for row in cursor.fetchall()
     ]
 
-def mk_volumes(cursor, new_serie, new_editeur):
-    cursor.execute("SELECT b1.* FROM book as b1, book as b2 WHERE b1.serial_id = b2.serial_id AND b1.id != b2.id GROUP BY b1.id;")
+def mk_ouvrages(cursor, new_series, new_editeurs):
+    #cursor.execute("SELECT b1.* FROM book as b1, book as b2 WHERE b1.serial_id = b2.serial_id AND b1.id != b2.id GROUP BY b1.id;")
+    cursor.execute("SELECT * FROM book;")
 
     for row in dictfetchall(cursor):
         e = None
         try:
-            e = rest_api.models.Editeur.objects.get(pk=new_editeur[row['editor_id']])
+            e = rest_api.models.Editeur.objects.get(pk=new_editeurs[row['editor_id']])
         except (ObjectDoesNotExist, KeyError):
             pass
 
         s = None
         try:
-            s = rest_api.models.Serie.objects.get(pk=new_serie[row['serial_id']])
+            s = rest_api.models.Serie.objects.get(pk=new_series[row['serial_id']])
         except (ObjectDoesNotExist, KeyError):
             pass
 
         if s != None:
-            print "!------Save------!"
+            print "!------Save Volume------!"
             print row
             v = rest_api.models.Volume(
                 cote=row['reference'],
@@ -41,11 +42,30 @@ def mk_volumes(cursor, new_serie, new_editeur):
             )
             v.save()
         else:
-            print "------Discard------!"
-            print row
-            print s
+            c = None
+            try:
+                c = rest_api.models.Categorie.objects.get(pk=row['reference'][0:2])
+            except ObjectDoesNotExist:
+                print "!------Discard------!"
+                print row
+                print row['reference'][0:2]
+                pass
 
-def mk_editeur(cursor):
+            if c != None:
+                print "!------Save OneShot------!"
+                print row
+                o = rest_api.models.OneShot(
+                    cote=row['reference'],
+                    titre=row['title'],
+                    date_entree=row['buy_date'],
+                    id_editeur=e,
+                    is_manga=(row['kind'] == 'm'),
+                    id_categorie=c
+                )
+                o.save()
+
+
+def mk_editeurs(cursor):
     cursor.execute("SELECT * FROM editor WHERE name != ''")
 
     d = dict()
@@ -59,7 +79,7 @@ def mk_editeur(cursor):
 
     return d
 
-def mk_categorie():
+def mk_categories():
     c = rest_api.models.Categorie(
         prefix=3,
         nom="Humour"
@@ -198,7 +218,7 @@ def mk_categorie():
     )
     c.save()
 
-def mk_serie(cursor):
+def mk_series(cursor):
     cursor.execute("SELECT serial.*, reference FROM serial, book WHERE book.serial_id = serial.id GROUP BY serial.id;")
 
     d = dict()
@@ -228,11 +248,13 @@ def mk_serie(cursor):
 
 def mk_all():
     cursor = connections['old'].cursor()
+    cursor.execute("DELETE FROM serial WHERE title = 'One Shot';")
+    cursor.execute("DELETE FROM book WHERE reference = '';")
 
-    new_editeur = mk_editeur(cursor)
-    mk_categorie()
-    new_serie = mk_serie(cursor)
-    mk_volumes(cursor, new_serie, new_editeur)
+    new_editeurs = mk_editeurs(cursor)
+    mk_categories()
+    new_series = mk_series(cursor)
+    mk_ouvrages(cursor, new_series, new_editeurs)
     # ...
 
 

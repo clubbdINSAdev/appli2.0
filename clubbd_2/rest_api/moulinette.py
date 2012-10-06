@@ -29,15 +29,13 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
             pass
 
         if s != None:
-            print "!------Save Volume------!"
-            print row
             v = rest_api.models.Volume(
                 cote=row['reference'],
                 titre=row['title'],
                 date_entree=row['buy_date'],
-                id_editeur=e,
+                editeur=e,
                 is_manga=(row['kind'] == 'm'),
-                id_serie=s,
+                serie=s,
                 numero=row['serial_nb']
             )
             v.save()
@@ -52,15 +50,13 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
                 pass
 
             if c != None:
-                print "!------Save OneShot------!"
-                print row
                 o = rest_api.models.OneShot(
                     cote=row['reference'],
                     titre=row['title'],
                     date_entree=row['buy_date'],
-                    id_editeur=e,
+                    editeur=e,
                     is_manga=(row['kind'] == 'm'),
-                    id_categorie=c
+                    categorie=c
                 )
                 o.save()
 
@@ -234,12 +230,10 @@ def mk_series(cursor):
             pass
 
         if c != None:
-            print "!------Save------!"
-            print row
             s = rest_api.models.Serie(
                 nom=row['title'],
                 prefix=row['reference'][2:5],
-                id_categorie = c
+                categorie = c
             )
             s.save()
             d.setdefault(row['id'], s.id)
@@ -263,6 +257,12 @@ def mk_utilisateurs(cursor):
 def mk_all():
     cursor = connections['old'].cursor()
     cursor.execute("DELETE FROM serial WHERE title = 'One Shot';")
+    cursor.execute("DELETE FROM serial WHERE title = 'Hotel';")
+    cursor.execute("DELETE FROM serial WHERE title = 'Reset';")
+    cursor.execute("DELETE FROM serial WHERE title = 'Un bus passe';")
+    cursor.execute("DELETE FROM serial WHERE title = 'Le Passage';")
+    cursor.execute("DELETE FROM serial WHERE title = 'La Page Blanche';")
+    cursor.execute("DELETE FROM serial WHERE title = 'Montrez-moi le chemin';")
     cursor.execute("DELETE FROM book WHERE reference = '';")
     cursor.execute("DELETE FROM user WHERE student_number = '';")
 

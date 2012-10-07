@@ -7,6 +7,9 @@ class Editeur(models.Model):
 class Tag(models.Model):
     tag = models.CharField(max_length=64)
 
+class Auteur(models.Model):
+    nom = models.CharField(max_length=64)
+
 class Ouvrage(models.Model):
     isbn = models.IntegerField(null=True)
     ean = models.IntegerField(null=True)
@@ -17,6 +20,7 @@ class Ouvrage(models.Model):
     editeur = models.ForeignKey(Editeur, null=True)
     is_manga = models.BooleanField()
     tags = models.ManyToManyField(Tag)
+    auteurs = models.ManyToManyField(Auteur)
     empruntable = models.BooleanField()
 
 class Utilisateur(models.Model):
@@ -31,6 +35,7 @@ class Authentification(models.Model):
     mail = models.EmailField(unique=True)
     hash = models.CharField(max_length=512, blank=False)
     salt = models.CharField(max_length=512, blank=False)
+    api_key = models.CharField(max_length=512, blank=False)
     utilisateur = models.ForeignKey(Utilisateur)
 
 class Categorie(models.Model):

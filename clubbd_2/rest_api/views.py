@@ -75,6 +75,18 @@ def search_users_by_name(request, name):
 
     return HttpResponse(restify(users), content_type="application/json")
 
+@require_http_methods(["GET"])
+def get_salt(request, login):
+    a = None
+    try:
+        a = models.Authentification.objects.get(mail=login)
+    except ObjectDoesNotExist:
+        pass
+    if a != None:
+        return HttpResponse('{"salt":"'+a.salt+'"}', content_type="application/json")
+    else:
+        return HttpResponse("KO", content_type="application/json")
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def authenticate(request):
@@ -83,12 +95,13 @@ def authenticate(request):
     print a
     print a.hash
     print get.get('hash')
-    
+
     @ensure_csrf_cookie
     def response_ok(request):
         u = models.Utilisateur.objects.get(id=a.utilisateur.id)
+        u.api_key = a.api_key
         return HttpResponse(restify(u), content_type="application/json")
-    
+
     if a.hash == get.get('hash'):
         return response_ok(request)
     else:
@@ -102,7 +115,7 @@ def ouvrage_heavy_lifting(query, args=None):
     elif (query == "filter"):
         volumes = models.Volume.objects.filter(**args)
         oneshots = models.OneShot.objects.filter(**args)
-    
+
     def transform(el):
         res = restify(el, json=False)
 

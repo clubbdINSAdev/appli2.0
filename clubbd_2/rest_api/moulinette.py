@@ -12,8 +12,11 @@ def dictfetchall(cursor):
         for row in cursor.fetchall()
     ]
 
-def mk_ouvrages(cursor, new_series, new_editeurs):
+def mk_ouvrages(cursor, new_series, new_editeurs, new_auteurs):
     #cursor.execute("SELECT b1.* FROM book as b1, book as b2 WHERE b1.serial_id = b2.serial_id AND b1.id != b2.id GROUP BY b1.id;")
+    
+    cursor.execute("SELECT * FROM author_to_book;")
+    dict_atb =  dictfetchall(cursor)
     cursor.execute("SELECT * FROM book;")
 
     for row in dictfetchall(cursor):
@@ -29,6 +32,7 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
         except (ObjectDoesNotExist, KeyError):
             pass
 
+        print row
         if s != None:
             v = rest_api.models.Volume(
                 cote=row['reference'],
@@ -40,6 +44,16 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
                 empruntable=True,
                 numero=row['serial_nb']
             )
+            v.save()
+            for row2 in dict_atb:
+                a = None
+                if row2['book_id'] == row['id']:
+                    try:
+                        print row2
+                        a = rest_api.models.Auteur.objects.get(pk=new_series[row2['author_id']])
+                        v.auteurs.add(a)
+                    except (ObjectDoesNotExist, KeyError):
+                        pass
             v.save()
         else:
             c = None
@@ -61,6 +75,16 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
                     empruntable=True,
                     categorie=c
                 )
+                o.save()
+                for row2 in dict_atb:
+                    a = None
+                    if row2['book_id'] == row['id']:
+                        try:
+                            print row2
+                            a = rest_api.models.Auteur.objects.get(pk=new_series[row2['author_id']])
+                            o.auteurs.add(a)
+                        except (ObjectDoesNotExist, KeyError):
+                            pass
                 o.save()
 
 
@@ -261,9 +285,24 @@ def mk_utilisateurs(cursor):
             mail = u.mail,
             salt = s,
             hash = bcrypt.hashpw("aubry", s),
+            api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
             utilisateur = u
         )
         a.save()
+
+def mk_auteurs(cursor):
+    cursor.execute("SELECT * FROM author;")
+
+    d = dict()
+    
+    for row in dictfetchall(cursor):
+        a = rest_api.models.Auteur(
+            nom=row['name']
+        )
+        a.save()
+        d.setdefault(row['id'], a.id)
+
+    return d
 
 def mk_all():
     cursor = connections['old'].cursor()
@@ -280,7 +319,9 @@ def mk_all():
     new_editeurs = mk_editeurs(cursor)
     mk_categories()
     new_series = mk_series(cursor)
-    mk_ouvrages(cursor, new_series, new_editeurs)
+    new_auteurs = mk_auteurs(cursor)
+    cursor2= connections['old'].cursor()
+    mk_ouvrages(cursor, new_series, new_editeurs, new_auteurs)
     mk_utilisateurs(cursor)
     # ...
 

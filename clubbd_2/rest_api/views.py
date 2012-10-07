@@ -52,10 +52,15 @@ def search_users_by_name(request, name):
 
     return HttpResponse(restify(users), content_type="application/json")
 
-def get_ouvrages(request):
-    volumes = models.Volume.objects.all()
-    oneshots = models.OneShot.objects.all()
+def ouvrage_heavy_lifting(query, args=None):
 
+    if (query == "all"):
+        volumes = models.Volume.objects.all()
+        oneshots = models.OneShot.objects.all()
+    elif (query == "filter"):
+        volumes = models.Volume.objects.filter(**args)
+        oneshots = models.OneShot.objects.filter(**args)
+    
     def transform(el):
         res = restify(el, json=False)
 
@@ -73,6 +78,9 @@ def get_ouvrages(request):
 
     return HttpResponse(json.dumps(volumes + oneshots, default=json_date), content_type="application/json")
 
+def get_ouvrages(request):
+    return ouvrage_heavy_lifting("all")
+
 def get_ouvrage_by_id(request, id):
     try:
         el = models.Volume.objects.get(pk=id)
@@ -85,6 +93,11 @@ def get_ouvrage_by_id(request, id):
 
     return HttpResponse(restify(el), content_type="application/json")
 
+def search_ouvrage_by_title(request, title):
+    return ouvrage_heavy_lifting("filter", {"titre__icontains": title})
+
+def search_ouvrage_by_editor(request, editor):
+    return ouvrage_heavy_lifting("filter", {"editeur__nom__icontains": editor})
 
 def get_editors(request):
     editors = models.Editeur.objects.all() 

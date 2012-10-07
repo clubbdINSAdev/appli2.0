@@ -251,14 +251,14 @@ def mk_utilisateurs(cursor):
             id=row['student_number'],
             nom=row['lastname'],
             prenom=row['firstname'],
-            mail=row['mail'],
+            mail=row.get('mail','') if row.get('mail','') != '' else row.get('firstname','')+'.'+row.get('lastname','')+'@insa-lyon.fr',
             telephone=row['phone'],
             adresse=row['address']
         )
         u.save()
         s = bcrypt.gensalt(12)
         a = rest_api.models.Authentification(
-            login = u.prenom,
+            mail = u.mail,
             salt = s,
             hash = bcrypt.hashpw("aubry", s),
             utilisateur = u

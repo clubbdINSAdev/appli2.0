@@ -23,12 +23,12 @@ class Utilisateur(models.Model):
     id = models.BigIntegerField(primary_key=True)
     nom = models.CharField(max_length=64)
     prenom = models.CharField(max_length=64)
-    mail = models.EmailField(null=True)
+    mail = models.EmailField(unique=True)
     telephone = models.CharField(max_length=64, null=True)
     adresse = models.TextField(null=True)
 
 class Authentification(models.Model):
-    login = models.CharField(max_length=64, unique=True)
+    mail = models.EmailField(unique=True)
     hash = models.CharField(max_length=512, blank=False)
     salt = models.CharField(max_length=512, blank=False)
     utilisateur = models.ForeignKey(Utilisateur)

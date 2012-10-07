@@ -4,7 +4,7 @@ from django.http import HttpResponse
 import datetime
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.template import Template
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -47,10 +47,12 @@ def restify(o, json=True):
 def get_users(request):
     if request.method == 'GET':
         get = json.loads(request.GET['json'])
-        a = models.Authentification.get(login=get.get('login'))
+        a = models.Authentification.get(mail=get.get('mail'))
         if a.hash == get.get('hash'):
             users = models.Utilisateur.objects.all()
             return HttpResponse(restify(users), content_type="application/json")
+        else:
+            return HttpResponse("KO", content_type="application/json")
 
     elif request.method == 'POST':
         post = json.loads(request.POST['json'])
@@ -77,13 +79,18 @@ def search_users_by_name(request, name):
 @require_http_methods(["POST"])
 def authenticate(request):
     get = json.loads(request.POST['json'])
-    a = models.Authentification.objects.get(login=get.get('login'))
+    a = models.Authentification.objects.get(mail=get.get('mail'))
     print a
     print a.hash
     print get.get('hash')
+    
+    @ensure_csrf_cookie
+    def response_ok(request):
+        u = models.Utilisateur.objects.get(id=a.utilisateur.id)
+        return HttpResponse(restify(u), content_type="application/json")
+    
     if a.hash == get.get('hash'):
-        t = Template('{"salt":"'+str(a.salt)+'", "token":"{% csrf_token %}"}')
-        return HttpResponse(t.render(c), content_type="application/json")
+        return response_ok(request)
     else:
         return HttpResponse("KO", content_type="application/json")
 

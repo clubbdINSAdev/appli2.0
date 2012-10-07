@@ -12,5 +12,6 @@ urlpatterns = patterns('',
                        url(r'^categories/(?P<prefix>\d+)', 'rest_api.views.get_categories_by_prefix'),
                        url(r'^series/name/(?P<name>\w+)', 'rest_api.views.search_series_by_name'),
                        url(r'^series/all$', 'rest_api.views.get_series'),
-                       url(r'^series/categorie/(?P<categorie_id>\d+)', 'rest_api.views.search_series_by_categorie')
+                       url(r'^series/categorie/(?P<categorie_id>\d+)', 'rest_api.views.search_series_by_categorie'),
+                       url(r'^authenticate', 'rest_api.views.authenticate')
               )

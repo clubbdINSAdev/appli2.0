@@ -2,10 +2,14 @@ import models, json
 from django.db.models import Q
 from django.http import HttpResponse
 import datetime
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.template import Template
+from django.shortcuts import render_to_response
 
 def restify_one(o, jsonify):
     del o.__dict__['_state']
-    
+
     if jsonify:
         return json.dumps(o.__dict__)
     else:
@@ -37,19 +41,50 @@ def json_date(obj):
     if type(obj) == datetime.date:
         return obj.strftime("%d/%m/%Y")
 
-# Create your views here.
+# Create your views here
+@require_http_methods(["GET", "POST"])
 def get_users(request):
-    users = models.Utilisateur.objects.all()
+    if request.method == 'GET':
+        get = json.loads(request.GET['json'])
+        a = models.Authentification.get(login=get.get('login'))
+        if a.hash == get.get('hash'):
+            users = models.Utilisateur.objects.all()
+            return HttpResponse(restify(users), content_type="application/json")
 
-    return HttpResponse(restify(users), content_type="application/json")
+    elif request.method == 'POST':
+        post = json.loads(request.POST['json'])
+        u = models.Utilisateur(id=post['id'])
+        u.nom = post.get('nom')
+        u.prenom = post.get('prenom')
+        u.mail = post.get('mail')
+        u.telephone = post.get('telephone')
+        u.adresse = post.get('adresse')
+        u.save()
+        return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
 
+@require_http_methods(["GET", "PUT", "DELETE"])
 def get_user_by_id(request, id):
     return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
 
+@require_http_methods(["GET"])
 def search_users_by_name(request, name):
     users = models.Utilisateur.objects.filter(Q(prenom__icontains=name) | Q(nom__icontains=name))
 
     return HttpResponse(restify(users), content_type="application/json")
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def authenticate(request):
+    get = json.loads(request.POST['json'])
+    a = models.Authentification.objects.get(login=get.get('login'))
+    print a
+    print a.hash
+    print get.get('hash')
+    if a.hash == get.get('hash'):
+        t = Template('{"salt":"'+str(a.salt)+'", "token":"{% csrf_token %}"}')
+        return HttpResponse(t.render(c), content_type="application/json")
+    else:
+        return HttpResponse("KO", content_type="application/json")
 
 def get_ouvrages(request):
     volumes = models.Volume.objects.all()

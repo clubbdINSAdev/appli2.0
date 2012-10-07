@@ -1,6 +1,7 @@
 from django.db import connections, IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 import rest_api.models
+import bcrypt
 
 # Stolen from django docs
 def dictfetchall(cursor):
@@ -36,6 +37,7 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
                 editeur=e,
                 is_manga=(row['kind'] == 'm'),
                 serie=s,
+                empruntable=True,
                 numero=row['serial_nb']
             )
             v.save()
@@ -56,6 +58,7 @@ def mk_ouvrages(cursor, new_series, new_editeurs):
                     date_entree=row['buy_date'],
                     editeur=e,
                     is_manga=(row['kind'] == 'm'),
+                    empruntable=True,
                     categorie=c
                 )
                 o.save()
@@ -253,6 +256,14 @@ def mk_utilisateurs(cursor):
             adresse=row['address']
         )
         u.save()
+        s = bcrypt.gensalt(12)
+        a = rest_api.models.Authentification(
+            login = u.prenom,
+            salt = s,
+            hash = bcrypt.hashpw("aubry", s),
+            utilisateur = u
+        )
+        a.save()
 
 def mk_all():
     cursor = connections['old'].cursor()

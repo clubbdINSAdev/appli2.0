@@ -11,7 +11,7 @@ class Ouvrage(models.Model):
     isbn = models.IntegerField(null=True)
     ean = models.IntegerField(null=True)
     cote =  models.CharField(max_length=10, primary_key=True)
-    titre = models.CharField(max_length=64)
+    titre = models.CharField(max_length=64, null=True)
     description = models.TextField(null=True)
     date_entree = models.DateField(null=True)
     editeur = models.ForeignKey(Editeur, null=True)
@@ -23,9 +23,15 @@ class Utilisateur(models.Model):
     id = models.BigIntegerField(primary_key=True)
     nom = models.CharField(max_length=64)
     prenom = models.CharField(max_length=64)
-    mail = models.EmailField()
-    telephone = models.CharField(max_length=64)
-    adresse = models.TextField()
+    mail = models.EmailField(null=True)
+    telephone = models.CharField(max_length=64, null=True)
+    adresse = models.TextField(null=True)
+
+class Authentification(models.Model):
+    login = models.CharField(max_length=64, unique=True)
+    hash = models.CharField(max_length=512, blank=False)
+    salt = models.CharField(max_length=512, blank=False)
+    utilisateur = models.ForeignKey(Utilisateur)
 
 class Categorie(models.Model):
     prefix = models.IntegerField(primary_key=True)
@@ -71,8 +77,8 @@ class AbonnementHistorique(models.Model):
     date_deb = models.DateField()
 
 class Avis(models.Model):
-    note = models.BigIntegerField()
-    critique = models.TextField()
+    note = models.BigIntegerField(null=True)
+    critique = models.TextField(null=True)
     utilisateur = models.ForeignKey(Utilisateur)
 
 class AvisSerie(Avis):

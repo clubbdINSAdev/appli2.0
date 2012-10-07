@@ -73,7 +73,6 @@ def search_users_by_name(request, name):
 
     return HttpResponse(restify(users), content_type="application/json")
 
-<<<<<<< HEAD
 @csrf_exempt
 @require_http_methods(["POST"])
 def authenticate(request):

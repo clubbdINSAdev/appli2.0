@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'clubbd_2.views.home', name='home'),
      url(r'^rest/v1/', include('rest_api.urls')),
+     url(r'^gestion/', include('gestion.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

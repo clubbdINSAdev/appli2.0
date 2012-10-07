@@ -1,10 +1,16 @@
 # Django settings for clubbd_2 project.
+import os
+import django
+# calculated paths for django and the site
+# used as starting points for various other paths
+DJANGO_ROOT = os.path.dirname(os.path.realpath(django.__file__))
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+     ('Mathieu Sabourin', 'mathieu.c.sabourin@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -111,6 +117,7 @@ ROOT_URLCONF = 'clubbd_2.urls'
 WSGI_APPLICATION = 'clubbd_2.wsgi.application'
 
 TEMPLATE_DIRS = (
+    os.path.join(SITE_ROOT, 'templates')
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -123,7 +130,8 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_api'
+    'rest_api',
+    'gestion'
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:

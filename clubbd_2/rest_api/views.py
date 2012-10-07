@@ -141,6 +141,13 @@ def search_ouvrage_by_title(request, title):
 def search_ouvrage_by_editor(request, editor):
     return ouvrage_heavy_lifting("filter", {"editeur__nom__icontains": editor})
 
+def search_ouvrage_all(request, query):
+    d = {}
+    for pair in query.split('&'):
+        d[pair.split('=')[0]+"__icontains"] = pair.split('=')[1]
+
+    return ouvrage_heavy_lifting("filter", d)
+
 def get_editors(request):
     editors = models.Editeur.objects.all() 
 

@@ -1,7 +1,7 @@
 import models, json
 from django.db.models import Q
 from django.http import HttpResponse
-import datetime
+import datetime, random, string
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -47,8 +47,8 @@ def restify(o, json=True):
 def get_users(request):
     if request.method == 'GET':
         get = json.loads(request.GET['json'])
-        a = models.Authentification.get(mail=get.get('mail'))
-        if a.hash == get.get('hash'):
+        a = models.Authentification.get(mail=get.get('login'))
+        if a.api_key == get.get('api_key'):
             users = models.Utilisateur.objects.all()
             return HttpResponse(restify(users), content_type="application/json")
         else:
@@ -56,14 +56,37 @@ def get_users(request):
 
     elif request.method == 'POST':
         post = json.loads(request.POST['json'])
-        u = models.Utilisateur(id=post['id'])
-        u.nom = post.get('nom')
-        u.prenom = post.get('prenom')
-        u.mail = post.get('mail')
-        u.telephone = post.get('telephone')
-        u.adresse = post.get('adresse')
-        u.save()
-        return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
+        aut = models.Authentification.get(mail=post.get('login'))
+        if aut.api_key == post.get('api_key'):
+            old_user = None
+            try:
+                old_user = models.Utilisateur.objects.get(id=post['id'])
+            except ObjectDoesNotExist:
+                pass
+            if old_user != None:
+                return HttpResponse("KO Exists", content_type="application/json")
+            else:
+                u = models.Utilisateur(id=post['id'],mail=post['mail'])
+                u.nom = post.get('nom')
+                u.prenom = post.get('prenom')
+                u.telephone = post.get('telephone')
+                u.adresse = post.get('adresse')
+                u.save()
+                s = bcrypt.gensalt(12)
+                pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
+                print "TODO: mail this pwd to the user"+pwd
+                a = Authentification(
+                    mail = post['mail'],
+                    salt = s,
+                    hash = bcrypt.hashpwd(pwd, s),
+                    api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
+                    utilisateur u
+                )
+                a.save()
+                return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
+        else:
+            return HttpResponse("KO Wrong Key", content_type="application/json")
+
 
 @require_http_methods(["GET", "PUT", "DELETE"])
 def get_user_by_id(request, id):

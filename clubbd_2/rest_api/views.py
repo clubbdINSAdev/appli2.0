@@ -42,28 +42,29 @@ def restify(o, json=True):
     else:
         return restify_one(o, json)
 
+def user_exists(new_id):
+    user = None
+    try:
+        user = models.Utilisateur.objects.get(id=new_id)
+    except ObjectDoesNotExist:
+        pass
+    return user != None
+
+def check_api_key(request):
+    req = request.REQUEST
+    a = models.Authentification.get(mail=req.get('login'))
+    return a.api_key == req.get('api_key')
+
 # Create your views here
 @require_http_methods(["GET", "POST"])
 def get_users(request):
-    if request.method == 'GET':
-        get = json.loads(request.GET['json'])
-        a = models.Authentification.get(mail=get.get('login'))
-        if a.api_key == get.get('api_key'):
+    if check_api_key(request):
+        if request.method == 'GET':
             users = models.Utilisateur.objects.all()
             return HttpResponse(restify(users), content_type="application/json")
-        else:
-            return HttpResponse("KO", content_type="application/json")
-
-    elif request.method == 'POST':
-        post = json.loads(request.POST['json'])
-        aut = models.Authentification.get(mail=post.get('login'))
-        if aut.api_key == post.get('api_key'):
-            old_user = None
-            try:
-                old_user = models.Utilisateur.objects.get(id=post['id'])
-            except ObjectDoesNotExist:
-                pass
-            if old_user != None:
+        elif request.method == 'POST':
+            post = json.loads(request.POST['json'])
+            if user_exists(post['id']):
                 return HttpResponse("KO Exists", content_type="application/json")
             else:
                 u = models.Utilisateur(id=post['id'],mail=post['mail'])
@@ -84,8 +85,8 @@ def get_users(request):
                 )
                 a.save()
                 return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
-        else:
-            return HttpResponse("KO Wrong Key", content_type="application/json")
+    else:
+        return HttpResponse("KO Wrong Key", content_type="application/json")
 
 
 @require_http_methods(["GET", "PUT", "DELETE"])

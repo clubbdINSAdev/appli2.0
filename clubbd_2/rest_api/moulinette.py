@@ -177,13 +177,7 @@ def mk_categories():
 
     c = rest_api.models.Categorie(
         prefix=28,
-        nom="Classique Policier"
-    )
-    c.save()
-
-    c = rest_api.models.Categorie(
-        prefix=29,
-        nom="Classique Divers?"
+        nom="Classique Aventure, Policier"
     )
     c.save()
 
@@ -213,7 +207,7 @@ def mk_categories():
 
     c = rest_api.models.Categorie(
         prefix=84,
-        nom="Comique, Divers?"
+        nom="Comique, Divers"
     )
     c.save()
 
@@ -225,7 +219,7 @@ def mk_categories():
 
     c = rest_api.models.Categorie(
         prefix=86,
-        nom="inconnu ?"
+        nom="Manhwa"
     )
     c.save()
 
@@ -248,8 +242,9 @@ def mk_series(cursor):
 
     for row in dictfetchall(cursor):
         c = None
+        ref = row['reference'][0:2]
         try:
-            c = rest_api.models.Categorie.objects.get(pk=row['reference'][0:2])
+            c = rest_api.models.Categorie.objects.get(pk=ref if ref != 28 else 29)
         except ObjectDoesNotExist:
             print "!------Discard------!"
             print row

@@ -50,50 +50,55 @@ def user_exists(new_id):
         pass
     return user != None
 
-def check_api_key(request):
-    req = request.REQUEST
-    a = models.Authentification.get(mail=req.get('login'))
-    return a.api_key == req.get('api_key')
+def require_api_key(func):
+    def wrapper(request, *args, **kwargs):
+        req = request.REQUEST
+        a = models.Authentification.get(mail=req.get('login'))
+        if a.api_key == req.get('api_key'):
+            return func(request, *args, **kwargs)
+        else:
+            return HttpResponse("KO Wrong Key", content_type="application/json")
+    return wrapper
 
 # Create your views here
 @require_http_methods(["GET", "POST"])
+@require_api_key
 def get_users(request):
-    if check_api_key(request):
-        if request.method == 'GET':
-            users = models.Utilisateur.objects.all()
-            return HttpResponse(restify(users), content_type="application/json")
-        elif request.method == 'POST':
-            post = json.loads(request.POST['json'])
-            if user_exists(post['id']):
-                return HttpResponse("KO Exists", content_type="application/json")
-            else:
-                u = models.Utilisateur(id=post['id'],mail=post['mail'])
-                u.nom = post.get('nom')
-                u.prenom = post.get('prenom')
-                u.telephone = post.get('telephone')
-                u.adresse = post.get('adresse')
-                u.save()
-                s = bcrypt.gensalt(12)
-                pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
-                print "TODO: mail this pwd to the user"+pwd
-                a = Authentification(
-                    mail = post['mail'],
-                    salt = s,
-                    hash = bcrypt.hashpwd(pwd, s),
-                    api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
-                    utilisateur u
-                )
-                a.save()
-                return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
-    else:
-        return HttpResponse("KO Wrong Key", content_type="application/json")
+    if request.method == 'GET':
+        users = models.Utilisateur.objects.all()
+        return HttpResponse(restify(users), content_type="application/json")
+    elif request.method == 'POST':
+        post = json.loads(request.POST['json'])
+        if user_exists(post['id']):
+            return HttpResponse("KO Exists", content_type="application/json")
+        else:
+            u = models.Utilisateur(id=post['id'],mail=post['mail'])
+            u.nom = post.get('nom')
+            u.prenom = post.get('prenom')
+            u.telephone = post.get('telephone')
+            u.adresse = post.get('adresse')
+            u.save()
+            s = bcrypt.gensalt(12)
+            pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
+            print "TODO: mail this pwd to the user"+pwd
+            a = Authentification(
+                mail = post['mail'],
+                salt = s,
+                hash = bcrypt.hashpwd(pwd, s),
+                api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
+                utilisateur u
+            )
+            a.save()
+            return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
 
 
 @require_http_methods(["GET", "PUT", "DELETE"])
+@require_api_key
 def get_user_by_id(request, id):
     return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
 
 @require_http_methods(["GET"])
+@require_api_key
 def search_users_by_name(request, name):
     users = models.Utilisateur.objects.filter(Q(prenom__icontains=name) | Q(nom__icontains=name))
 

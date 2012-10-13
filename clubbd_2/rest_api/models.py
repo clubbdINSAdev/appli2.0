@@ -17,7 +17,7 @@ class Ouvrage(models.Model):
     titre = models.CharField(max_length=64, null=True)
     description = models.TextField(null=True)
     date_entree = models.DateField(null=True)
-    editeur = models.ForeignKey(Editeur, null=True)
+    editeur = models.ForeignKey(Editeur, null=True, on_delete=models.SET_NULL)
     is_manga = models.BooleanField()
     tags = models.ManyToManyField(Tag)
     auteurs = models.ManyToManyField(Auteur)

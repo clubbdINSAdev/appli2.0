@@ -1,12 +1,13 @@
 import models, json
 from django.db.models import Q
 from django.http import HttpResponse
-import datetime, random, string
+import datetime, random, string, bcrypt
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.datastructures import MultiValueDictKeyError
 
 def json_date(obj):
     if type(obj) == datetime.date:
@@ -52,9 +53,18 @@ def user_exists(new_id):
 
 def require_api_key(func):
     def wrapper(request, *args, **kwargs):
-        req = request.REQUEST
-        a = models.Authentification.get(mail=req.get('login'))
-        if a.api_key == req.get('api_key'):
+        login = request.GET.get('login')
+        api_key = request.GET.get('api_key')
+        if login == None or api_key == None:
+            return HttpResponse("KO No Auth Data", content_type="application/json")
+        a = None
+        try:
+            a = models.Authentification.objects.get(mail=login)
+        except ObjectDoesNotExist:
+            pass
+        if a == None:
+            return HttpResponse("KO Wrong Auth Data", content_type="application/json")
+        elif a.api_key == api_key:
             return func(request, *args, **kwargs)
         else:
             return HttpResponse("KO Wrong Key", content_type="application/json")
@@ -86,7 +96,7 @@ def get_users(request):
                 salt = s,
                 hash = bcrypt.hashpwd(pwd, s),
                 api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
-                utilisateur u
+                utilisateur = u
             )
             a.save()
             return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
@@ -95,13 +105,36 @@ def get_users(request):
 @require_http_methods(["GET", "PUT", "DELETE"])
 @require_api_key
 def get_user_by_id(request, id):
-    return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
+    if request.method == 'GET':
+        return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
+    elif request.method == 'PUT':
+        post = json.loads(request.POST['json'])
+        u = models.Utilisateur(id=post['id'],mail=post['mail'])
+        u.nom = post.get('nom')
+        u.prenom = post.get('prenom')
+        u.telephone = post.get('telephone')
+        u.adresse = post.get('adresse')
+        u.save()
+        s = bcrypt.gensalt(12)
+        pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
+        print "TODO: mail this pwd to the user"+pwd
+        a = Authentification(
+            mail = post['mail'],
+            salt = s,
+            hash = bcrypt.hashpwd(pwd, s),
+            api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
+            utilisateur = u
+        )
+        a.save()
+        return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
+    elif request.method == 'DELETE':
+        models.Utilisateur.objects.get(pk=id).delete()
+        return HttpResponse("Deleted", content_type="application/json")
 
 @require_http_methods(["GET"])
 @require_api_key
 def search_users_by_name(request, name):
     users = models.Utilisateur.objects.filter(Q(prenom__icontains=name) | Q(nom__icontains=name))
-
     return HttpResponse(restify(users), content_type="application/json")
 
 @require_http_methods(["GET"])
@@ -116,14 +149,14 @@ def get_salt(request, login):
     else:
         return HttpResponse("KO", content_type="application/json")
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["GET"])
 def authenticate(request):
-    get = json.loads(request.POST['json'])
-    a = models.Authentification.objects.get(mail=get.get('mail'))
-    print a
-    print a.hash
-    print get.get('hash')
+    login = request.GET.get('login')
+    hash = request.GET.get('hash')
+    if(login == None or hash == None):
+        return HttpResponse("KO No Auth Data", content_type="application/json")
+
+    a = models.Authentification.objects.get(mail=login)
 
     @ensure_csrf_cookie
     def response_ok(request):
@@ -131,7 +164,7 @@ def authenticate(request):
         u.api_key = a.api_key
         return HttpResponse(restify(u), content_type="application/json")
 
-    if a.hash == get.get('hash'):
+    if a.hash == hash:
         return response_ok(request)
     else:
         return HttpResponse("KO", content_type="application/json")

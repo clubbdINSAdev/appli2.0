@@ -169,7 +169,7 @@ def authenticate(request):
     else:
         return HttpResponse("KO", content_type="application/json")
 
-def ouvrage_heavy_lifting(query, args=None):
+def ouvrage_heavy_lifting(query, args=None, limit=None):
 
     if (query == "all"):
         volumes = models.Volume.objects.all()
@@ -193,10 +193,20 @@ def ouvrage_heavy_lifting(query, args=None):
     volumes = map(transform, volumes)
     oneshots = map(transform, oneshots)
 
-    return HttpResponse(json.dumps(volumes + oneshots, default=json_date), content_type="application/json")
+    if limit is None:
+        limit = len(volumes) + len(oneshots)
+    elif type(limit) is not int:
+        try:
+            limit = int(limit)
+        except:
+            limit = len(volumes) + len(oneshots)
+            
+    return HttpResponse(json.dumps((volumes + oneshots)[:limit], default=json_date), content_type="application/json")
 
+@require_http_methods(['POST', 'GET'])
 def get_ouvrages(request):
-    return ouvrage_heavy_lifting("all")
+    print "limit is "+str(request.GET.get('limit', None))
+    return ouvrage_heavy_lifting("all", limit=request.GET.get('limit', None))
 
 def get_ouvrage_by_id(request, id):
     try:

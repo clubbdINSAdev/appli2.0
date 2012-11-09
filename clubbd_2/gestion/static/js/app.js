@@ -1,10 +1,13 @@
-
-/*
-var booksController = App.BooksController.create();
-var arr = [];
-*/
-
 var App = Ember.Application.create({
+    enableLogging: true,
+    HomeView: Em.View.extend({
+	templateName: 'home'
+    }),
+    HomeController: Em.Controller.extend(),
+    BookController: Em.ObjectController.extend(),
+    BookView: Em.View.extend({
+	templateName: 'book'
+    }),
     BooksController: Ember.ArrayController.extend(),
     BooksView: Ember.View.extend({
 	templateName: 'books'
@@ -15,21 +18,45 @@ var App = Ember.Application.create({
     }),
     Router: Ember.Router.extend({
 	root: Ember.Route.extend({
+	    shout: function () {
+		    window.alert("More information ! NOT !");
+	    },
 	    index: Ember.Route.extend({
 		route: '/',
-		shout: function () {
-		    window.alert("More information ! NOT !");
-		}//,
-		//redirectsTo: 'books'
-	    }),
-	    books: Ember.Route.extend({
-		route: '/books',
 		connectOutlets: function(router) {
-		    router.get('applicationController').connectOutlet('books', App.Book.all());
+		    router.get('applicationController').connectOutlet('home');
 		}
 	    }),
-	    book: Ember.Route.extend({
-		route: '/books/:book_id'
+	    books: Ember.Route.extend({
+		showBook: Ember.Route.transitionTo('books.book'),
+		route: '/books',
+		index: Ember.Route.extend({
+		    enter: function () {
+			console.log("Entered books state.");
+		    },
+		    route: '/',
+		    connectOutlets: function(router) {
+			router.get('applicationController').connectOutlet('books', App.Book.all());
+		    },
+		}),
+		book: Ember.Route.extend({
+		    back: Em.Route.transitionTo('books'),
+		    route: '/book/:id',
+		    enter: function () {
+			console.log("Entered book state.");
+		    },
+		    deserialize:  function(router, context){
+			return App.Book.find(context.cote);
+		    },
+		    serialize:  function(router, context){
+			return {
+			    id: context.cote
+			}
+		    },
+		    connectOutlets:  function(router, aBook){
+			router.get('applicationController').connectOutlet('book', aBook); 
+		    }
+		})
 	    })
 	})
     })    
@@ -43,13 +70,12 @@ App.Book.reopenClass({
 	jQuery.getJSON('../rest/v1/books/all', function(json) {
 	    console.log("Got json");
 	    allBooks.clear();
-	    console.log(allBooks.length);
 	    allBooks.pushObjects(json);
-	    console.log(allBooks.length);
 	});
 	return this.__listOfBooks;
     },
     find: function (id) {
+	return this.__listOfBooks.findProperty('cote', id);
     }
 });
 

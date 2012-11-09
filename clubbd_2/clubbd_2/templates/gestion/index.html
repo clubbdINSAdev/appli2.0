@@ -32,12 +32,16 @@
 	<script type="text/x-handlebars" data-template-name="books">
           <div class="row">
 	    <h1>Bouquins</h1>
+	    <table>
+	      <tr><th>Titre</th><th>Cote</th></tr>
 	    {% verbatim %}
-	    {{books}}
-	     {{#each books}}
-	       {{titre}} {{cote}}
+	     {{#each book in controller}}
+	       {{#with book}}
+	         <tr><td>{{titre}}</td><td>{{cote}}</td></tr>
+	       {{/with }}
 	     {{/each }}
 	    {% endverbatim %}
+	    </table>
 	  </div>
 	</script>
 

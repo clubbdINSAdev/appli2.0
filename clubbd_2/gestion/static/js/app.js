@@ -2,16 +2,10 @@
 /*
 var booksController = App.BooksController.create();
 var arr = [];
-
-jQuery.getJSON("../rest/v1/books/all", function(json) {
-console.log(json);
-});
-
 */
 
 var App = Ember.Application.create({
-    Book: Ember.Object.extend(),
-    BooksController: Ember.Controller.extend(),
+    BooksController: Ember.ArrayController.extend(),
     BooksView: Ember.View.extend({
 	templateName: 'books'
     }),
@@ -20,10 +14,6 @@ var App = Ember.Application.create({
 	templateName: 'application'
     }),
     Router: Ember.Router.extend({
-	BooksController: Ember.ArrayController.extend(),
-	BooksView: Ember.View.extend({
-	    templateName: 'books'
-	}),
 	root: Ember.Route.extend({
 	    index: Ember.Route.extend({
 		route: '/',
@@ -35,7 +25,7 @@ var App = Ember.Application.create({
 	    books: Ember.Route.extend({
 		route: '/books',
 		connectOutlets: function(router) {
-		    router.get('applicationController').connectOutlet({name:'books', context: {books: [{titre: "lol", cote: "111"}, {titre: "plop", cote: "112"}]}});
+		    router.get('applicationController').connectOutlet('books', App.Book.all());
 		}
 	    }),
 	    book: Ember.Route.extend({
@@ -43,6 +33,24 @@ var App = Ember.Application.create({
 	    })
 	})
     })    
+});
+
+App.Book = Ember.Object.extend();
+App.Book.reopenClass({
+    __listOfBooks: Em.A(),
+    all: function () {
+	var allBooks = this.__listOfBooks;
+	jQuery.getJSON('../rest/v1/books/all', function(json) {
+	    console.log("Got json");
+	    allBooks.clear();
+	    console.log(allBooks.length);
+	    allBooks.pushObjects(json);
+	    console.log(allBooks.length);
+	});
+	return this.__listOfBooks;
+    },
+    find: function (id) {
+    }
 });
 
 App.initialize();

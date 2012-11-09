@@ -24,7 +24,7 @@ var App = Ember.Application.create({
 	    index: Ember.Route.extend({
 		route: '/',
 		connectOutlets: function(router) {
-		    router.get('applicationController').connectOutlet('home');
+	    router.get('applicationController').connectOutlet('home');
 		}
 	    }),
 	    books: Ember.Route.extend({
@@ -40,7 +40,7 @@ var App = Ember.Application.create({
 		    },
 		}),
 		book: Ember.Route.extend({
-		    back: Em.Route.transitionTo('books'),
+		    back: Em.Route.transitionTo('root.books'),
 		    route: '/book/:id',
 		    enter: function () {
 			console.log("Entered book state.");
@@ -67,8 +67,9 @@ App.Book.reopenClass({
     __listOfBooks: Em.A(),
     all: function () {
 	var allBooks = this.__listOfBooks;
-	jQuery.getJSON('../rest/v1/books/all', function(json) {
-	    console.log("Got json");
+	jQuery.getJSON('../rest/v1/books/all?limit=50', function(json) {
+	    console.log("Got json, " + json.length + " books");
+	    console.log(json);
 	    allBooks.clear();
 	    allBooks.pushObjects(json);
 	});

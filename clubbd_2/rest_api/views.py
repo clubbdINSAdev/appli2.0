@@ -78,7 +78,7 @@ def get_users(request):
         users = models.Utilisateur.objects.all()
         return HttpResponse(restify(users), content_type="application/json")
     elif request.method == 'POST':
-        post = json.loads(request.POST['json'])
+        post = json.loads(request.body)
         if user_exists(post['id']):
             return HttpResponse("KO Exists", content_type="application/json")
         else:
@@ -89,12 +89,12 @@ def get_users(request):
             u.adresse = post.get('adresse')
             u.save()
             s = bcrypt.gensalt(12)
-            pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
-            print "TODO: mail this pwd to the user"+pwd
-            a = Authentification(
+            pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(8))
+            print "TODO: mail this pwd to the user "+pwd
+            a = models.Authentification(
                 mail = post['mail'],
                 salt = s,
-                hash = bcrypt.hashpwd(pwd, s),
+                hash = bcrypt.hashpw(pwd, s),
                 api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
                 utilisateur = u
             )
@@ -108,7 +108,7 @@ def get_user_by_id(request, id):
     if request.method == 'GET':
         return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
     elif request.method == 'PUT':
-        post = json.loads(request.POST['json'])
+        post = json.loads(request.body)
         u = models.Utilisateur(id=post['id'],mail=post['mail'])
         u.nom = post.get('nom')
         u.prenom = post.get('prenom')
@@ -118,10 +118,10 @@ def get_user_by_id(request, id):
         s = bcrypt.gensalt(12)
         pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
         print "TODO: mail this pwd to the user"+pwd
-        a = Authentification(
+        a = models.Authentification(
             mail = post['mail'],
             salt = s,
-            hash = bcrypt.hashpwd(pwd, s),
+            hash = bcrypt.hashpw(pwd, s),
             api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
             utilisateur = u
         )
@@ -138,10 +138,10 @@ def search_users_by_name(request, name):
     return HttpResponse(restify(users), content_type="application/json")
 
 @require_http_methods(["GET"])
-def get_salt(request, login):
+def get_salt(request):
     a = None
     try:
-        a = models.Authentification.objects.get(mail=login)
+        a = models.Authentification.objects.get(mail=request.GET.get('login'))
     except ObjectDoesNotExist:
         pass
     if a != None:
@@ -220,12 +220,15 @@ def get_ouvrage_by_id(request, id):
 
     return HttpResponse(restify(el), content_type="application/json")
 
+@require_http_methods(['GET'])
 def search_ouvrage_by_title(request, title):
     return ouvrage_heavy_lifting("filter", {"titre__icontains": title})
 
+@require_http_methods(['GET'])
 def search_ouvrage_by_editor(request, editor):
     return ouvrage_heavy_lifting("filter", {"editeur__nom__icontains": editor})
 
+@require_http_methods(['GET'])
 def search_ouvrage_all(request, query):
     d = {}
     for pair in query.split('&'):
@@ -233,6 +236,7 @@ def search_ouvrage_all(request, query):
 
     return ouvrage_heavy_lifting("filter", d)
 
+@require_http_methods(['GET'])
 def get_editors(request):
     editors = models.Editeur.objects.all() 
 
@@ -243,29 +247,35 @@ def search_editors_by_name(request, name):
 
     return HttpResponse(restify(editors), content_type="application/json")
 
+@require_http_methods(['GET'])
 def get_categories(request):
     categories = models.Categorie.objects.all() 
 
     return HttpResponse(restify(categories), content_type="application/json")
 
+@require_http_methods(['GET'])
 def get_categories_by_prefix(request, prefix):
     return HttpResponse(restify(models.Categorie.objects.get(pk=prefix)), content_type="application/json")
+@require_http_methods(['GET'])
 
 def search_categories_by_name(request, name):
     categories = models.Categorie.objects.filter(nom__icontains=name)
 
     return HttpResponse(restify(categories), content_type="application/json")
 
+@require_http_methods(['GET'])
 def get_series(request):
     series = models.Serie.objects.all() 
 
     return HttpResponse(restify(series), content_type="application/json")
 
+@require_http_methods(['GET'])
 def search_series_by_name(request, name):
     series = models.Serie.objects.filter(nom__icontains=name)
 
     return HttpResponse(restify(series), content_type="application/json")
 
+@require_http_methods(['GET'])
 def search_series_by_categorie(request, categorie_id):
     series = models.Serie.objects.filter(categorie=categorie_id)
 

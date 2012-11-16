@@ -1,7 +1,7 @@
 var prefix = '/rest/v1/authenticate';
 
 function get_salt (login, cb) {
-    jQuery.getJSON(prefix+'/salt/'+login, function (json) {
+    jQuery.getJSON(prefix+'/salt?login='+login, function (json) {
 	cb(json.salt || 'error');
     });
 }

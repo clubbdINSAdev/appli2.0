@@ -67,9 +67,8 @@ App.Book.reopenClass({
     __listOfBooks: Em.A(),
     all: function () {
 	var allBooks = this.__listOfBooks;
-	jQuery.getJSON('../rest/v1/books/all?limit=50', function(json) {
+	jQuery.getJSON('/rest/v1/books/all?limit=50', function(json) {
 	    console.log("Got json, " + json.length + " books");
-	    console.log(json);
 	    allBooks.clear();
 	    allBooks.pushObjects(json);
 	});

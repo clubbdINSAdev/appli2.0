@@ -29,6 +29,26 @@
 
 	<!-- views -->
 
+	<!-- LoginForm -->
+	<script type="text/x-handlebars" data-template-name="loginForm">
+	  {% verbatim %}
+	  <form id="login" class="navbar-form pull-right">
+            <input class="span2" type="text" placeholder="Email">
+            <input class="span2" type="password" placeholder="Password">
+            <button type="submit" class="btn">Sign in</button>
+          </form>
+	  {% endverbatim %}
+	</script>
+	
+	<script type="text/x-handlebars" data-template-name="loginTrue">
+	  {% verbatim %}
+	  <div class="navbar-form pull-right">
+            {{name}} {{surnom}}
+          </div>
+	  {% endverbatim %}
+	</script>
+
+
 	<!-- Book -->
 	<script type="text/x-handlebars" data-template-name="book">
 	  {% verbatim %}
@@ -118,11 +138,9 @@
                                 </ul>
                             </li>
                         </ul>
-                        <form class="navbar-form pull-right">
-                            <input class="span2" type="text" placeholder="Email">
-                            <input class="span2" type="password" placeholder="Password">
-                            <button type="submit" class="btn">Sign in</button>
-                        </form>
+			{% verbatim  %}
+			{{outlet login}}
+			{% endverbatim  %}
                     </div><!--/.nav-collapse -->
                 </div>
             </div>
@@ -132,7 +150,7 @@
 
           <!-- Main hero unit for a primary marketing message or call to action -->
             {% verbatim %}
-	    {{outlet}}
+	    {{outlet main}}
 	    {% endverbatim %}
 
 
@@ -141,7 +159,6 @@
             </footer>
 	    
         </div> <!-- /container -->
-
 
 	</script>
 
@@ -156,15 +173,6 @@
 	<script src="../static/js/libs/handlebars-1.0.0.beta.6.js"></script>
 	<script src="../static/js/libs/ember-1.0.0-pre.2.js"></script>
 	<script src="../static/js/libs/bCrypt.js"></script>
-
-	<script src="../static/js/libs/MochiKit/MochiKit.js" type="text/javascript"></script>
-
-	<script type="text/javascript" src="../static/js/libs/Clipperz/Base.js"></script>
-	<script type="text/javascript" src="../static/js/libs/Clipperz/ByteArray.js"></script>
-	<script type="text/javascript" src="../static/js/libs/Clipperz/Crypto/BigInt.js"></script>
-	<script type="text/javascript" src="../static/js/libs/Clipperz/Crypto/SHA.js"></script>
-	<script type="text/javascript" src="../static/js/libs/Clipperz/Crypto/AES.js"></script>
-	<script type="text/javascript" src="../static/js/libs/Clipperz/Crypto/PRNG.js"></script>
 
 	<script src="../static/js/auth.js"></script>
 	<script src="../static/js/app.js"></script>

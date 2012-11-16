@@ -1,5 +1,4 @@
 var App = Ember.Application.create({
-    enableLogging: true,
     HomeView: Em.View.extend({
 	templateName: 'home'
     }),
@@ -17,6 +16,7 @@ var App = Ember.Application.create({
 	templateName: 'application'
     }),
     Router: Ember.Router.extend({
+	enableLogging: true,
 	root: Ember.Route.extend({
 	    shout: function () {
 		    window.alert("More information ! NOT !");
@@ -40,7 +40,7 @@ var App = Ember.Application.create({
 		    },
 		}),
 		book: Ember.Route.extend({
-		    back: Em.Route.transitionTo('root.books'),
+		    back: Ember.Route.transitionTo('root.books.index'),
 		    route: '/book/:id',
 		    enter: function () {
 			console.log("Entered book state.");

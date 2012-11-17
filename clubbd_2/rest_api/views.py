@@ -78,7 +78,7 @@ def get_users(request):
         users = models.Utilisateur.objects.all()
         return HttpResponse(restify(users), content_type="application/json")
     elif request.method == 'POST':
-        post = json.loads(request.POST['json'])
+        post = json.loads(request.body)
         if user_exists(post['id']):
             return HttpResponse("KO Exists", content_type="application/json")
         else:
@@ -89,12 +89,12 @@ def get_users(request):
             u.adresse = post.get('adresse')
             u.save()
             s = bcrypt.gensalt(12)
-            pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
-            print "TODO: mail this pwd to the user"+pwd
-            a = Authentification(
+            pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(8))
+            print "TODO: mail this pwd to the user "+pwd
+            a = models.Authentification(
                 mail = post['mail'],
                 salt = s,
-                hash = bcrypt.hashpwd(pwd, s),
+                hash = bcrypt.hashpw(pwd, s),
                 api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
                 utilisateur = u
             )
@@ -108,7 +108,7 @@ def get_user_by_id(request, id):
     if request.method == 'GET':
         return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
     elif request.method == 'PUT':
-        post = json.loads(request.POST['json'])
+        post = json.loads(request.body)
         u = models.Utilisateur(id=post['id'],mail=post['mail'])
         u.nom = post.get('nom')
         u.prenom = post.get('prenom')
@@ -118,10 +118,10 @@ def get_user_by_id(request, id):
         s = bcrypt.gensalt(12)
         pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
         print "TODO: mail this pwd to the user"+pwd
-        a = Authentification(
+        a = models.Authentification(
             mail = post['mail'],
             salt = s,
-            hash = bcrypt.hashpwd(pwd, s),
+            hash = bcrypt.hashpw(pwd, s),
             api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
             utilisateur = u
         )

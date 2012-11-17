@@ -138,10 +138,10 @@ def search_users_by_name(request, name):
     return HttpResponse(restify(users), content_type="application/json")
 
 @require_http_methods(["GET"])
-def get_salt(request, login):
+def get_salt(request):
     a = None
     try:
-        a = models.Authentification.objects.get(mail=login)
+        a = models.Authentification.objects.get(mail=request.GET.get('login'))
     except ObjectDoesNotExist:
         pass
     if a != None:
@@ -220,12 +220,15 @@ def get_ouvrage_by_id(request, id):
 
     return HttpResponse(restify(el), content_type="application/json")
 
+@require_http_methods(['GET'])
 def search_ouvrage_by_title(request, title):
     return ouvrage_heavy_lifting("filter", {"titre__icontains": title})
 
+@require_http_methods(['GET'])
 def search_ouvrage_by_editor(request, editor):
     return ouvrage_heavy_lifting("filter", {"editeur__nom__icontains": editor})
 
+@require_http_methods(['GET'])
 def search_ouvrage_all(request, query):
     d = {}
     for pair in query.split('&'):
@@ -233,6 +236,7 @@ def search_ouvrage_all(request, query):
 
     return ouvrage_heavy_lifting("filter", d)
 
+@require_http_methods(['GET'])
 def get_editors(request):
     editors = models.Editeur.objects.all() 
 
@@ -243,29 +247,35 @@ def search_editors_by_name(request, name):
 
     return HttpResponse(restify(editors), content_type="application/json")
 
+@require_http_methods(['GET'])
 def get_categories(request):
     categories = models.Categorie.objects.all() 
 
     return HttpResponse(restify(categories), content_type="application/json")
 
+@require_http_methods(['GET'])
 def get_categories_by_prefix(request, prefix):
     return HttpResponse(restify(models.Categorie.objects.get(pk=prefix)), content_type="application/json")
+@require_http_methods(['GET'])
 
 def search_categories_by_name(request, name):
     categories = models.Categorie.objects.filter(nom__icontains=name)
 
     return HttpResponse(restify(categories), content_type="application/json")
 
+@require_http_methods(['GET'])
 def get_series(request):
     series = models.Serie.objects.all() 
 
     return HttpResponse(restify(series), content_type="application/json")
 
+@require_http_methods(['GET'])
 def search_series_by_name(request, name):
     series = models.Serie.objects.filter(nom__icontains=name)
 
     return HttpResponse(restify(series), content_type="application/json")
 
+@require_http_methods(['GET'])
 def search_series_by_categorie(request, categorie_id):
     series = models.Serie.objects.filter(categorie=categorie_id)
 

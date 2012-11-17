@@ -203,7 +203,7 @@ def ouvrage_heavy_lifting(query, args=None, limit=None):
             
     return HttpResponse(json.dumps((volumes + oneshots)[:limit], default=json_date), content_type="application/json")
 
-@require_http_methods(['POST', 'GET'])
+@require_http_methods(['GET'])
 def get_ouvrages(request):
     print "limit is "+str(request.GET.get('limit', None))
     return ouvrage_heavy_lifting("all", limit=request.GET.get('limit', None))

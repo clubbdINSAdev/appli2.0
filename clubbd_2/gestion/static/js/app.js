@@ -15,6 +15,14 @@ var App = Ember.Application.create({
     BooksView: Ember.View.extend({
 	templateName: 'books'
     }),
+    UserController: Em.ObjectController.extend(),
+    UserView: Em.View.extend({
+	templateName: 'user'
+    }),
+    UsersController: Ember.ArrayController.extend(),
+    UsersView: Ember.View.extend({
+	templateName: 'users'
+    }),
     ApplicationController: Ember.Controller.extend(),
     ApplicationView: Ember.View.extend({
 	templateName: 'application',
@@ -32,13 +40,13 @@ var App = Ember.Application.create({
 		    router.get('applicationController').connectOutlet('login', 'loginForm');
 		}
 	    }),
-	    logged: Em.Route.extend({
+	    /* logged: Em.Route.extend({
 		index: Ember.Route.extend({
 		    connectOutlets: function(router) {
 			router.get('applicationController').connectOutlet('login', 'loginTrue', {name: __user.prenom, surname: __user.nom});
 		    }
 		})
-	    }),
+	    }), */
 	    books: Ember.Route.extend({
 		showBook: Ember.Route.transitionTo('books.book'),
 		route: '/books',
@@ -53,7 +61,7 @@ var App = Ember.Application.create({
 		}),
 		book: Ember.Route.extend({
 		    back: Ember.Route.transitionTo('root.books.index'),
-		    route: '/book/:id',
+		    route: '/:id',
 		    enter: function () {
 			console.log("Entered book state.");
 		    },
@@ -67,6 +75,31 @@ var App = Ember.Application.create({
 		    },
 		    connectOutlets: function(router, aBook){
 			router.get('applicationController').connectOutlet('main', 'book', aBook); 
+		    }
+		})
+	    }),
+	    users: Ember.Route.extend({
+		showUser: Ember.Route.transitionTo('users.user'),
+		route: '/users',
+		index: Ember.Route.extend({
+		    route: '/',
+		    connectOutlets: function(router) {
+			router.get('applicationController').connectOutlet('main', 'users', App.User.all());
+		    },
+		}),
+		user: Ember.Route.extend({
+		    back: Ember.Route.transitionTo('root.users.index'),
+		    route: '/:id',
+		    deserialize: function(router, context){
+			return App.User.find(context.id);
+		    },
+		    serialize: function(router, context){
+			return {
+			    id: context.id
+			}
+		    },
+		    connectOutlets: function(router, user){
+			router.get('applicationController').connectOutlet('main', 'user', user); 
 		    }
 		})
 	    })
@@ -114,5 +147,28 @@ App.Book.reopenClass({
 	return this.__listOfBooks.findProperty('cote', id);
     }
 });
+
+App.User = Ember.Object.extend();
+App.User.reopenClass({
+    __listOfUsers: Em.A(),
+    all: function () {
+	var allUsers = this.__listOfUsers;
+	
+	if (__user.api_key) {
+	    var url = '/rest/v1/users/all?login='+__user.mail+
+		'&api_key='+__user.api_key;
+	    jQuery.getJSON(url, function(json) {
+		console.log(json);
+		allUsers.clear();
+		allUsers.pushObjects(json);
+	    });
+	} 
+	return this.__listOfUsers;
+    },
+    find: function (id) {
+	return this.__listOfUsers.findProperty('id', id);
+    }
+});
+
 
 App.initialize();

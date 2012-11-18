@@ -43,7 +43,7 @@
 	<script type="text/x-handlebars" data-template-name="loginTrue">
 	  {% verbatim %}
 	  <div class="navbar-form pull-right">
-            {{name}} {{surnom}}
+            Hello {{name}} {{surnom}} !
           </div>
 	  {% endverbatim %}
 	</script>
@@ -74,6 +74,44 @@
 	    </table>
 	  </div>
 	</script>
+
+	<!-- User -->
+	<script type="text/x-handlebars" data-template-name="user">
+	  {% verbatim %}
+	  <a {{action back this href=true}}>Back</a>
+	  <h1>{{prenon}} {{Nom}}</h1>
+	  <table class="table table-striped">
+	    <tr>
+	      <td>id</td><td>{{id}}</td>
+	    </tr>
+	    <tr>
+	      <td>telephone</td><td>{{telephone}}</td> 
+	    </tr>
+	    <tr>
+	      <td>adresse</td><td>{{adresse}}</td>
+	    </tr>
+	  </table>
+	  {% endverbatim %}
+	</script>
+
+	<!-- User list -->
+	<script type="text/x-handlebars" data-template-name="users">
+          <div class="row">
+	    <h1>Utilisateurs</h1>
+	    <table class="table table-striped">
+	      <thead><th>#</th><th>Nom</th></thead>
+	    {% verbatim %}
+	     {{#each user in controller}}
+	       {{#with user}}
+	         <tr {{action showUser this href=true}}><td>{{id}}</td><td>{{prenom}} {{nom}}</td></tr>
+	       {{/with }}
+	     {{/each }}
+	    {% endverbatim %}
+	    </table>
+	    <button>Add</button>
+	  </div>
+	</script>
+
 
 	<!-- Home -->
         <script type="text/x-handlebars" data-template-name="home">

@@ -40,67 +40,68 @@ var App = Ember.Application.create({
 		    router.get('applicationController').connectOutlet('login', 'loginForm');
 		}
 	    }),
-	    /* logged: Em.Route.extend({
+	    logged: Em.Route.extend({
 		index: Ember.Route.extend({
+		    route: '/',
 		    connectOutlets: function(router) {
 			router.get('applicationController').connectOutlet('login', 'loginTrue', {name: __user.prenom, surname: __user.nom});
 		    }
-		})
-	    }), */
-	    books: Ember.Route.extend({
-		showBook: Ember.Route.transitionTo('books.book'),
-		route: '/books',
-		index: Ember.Route.extend({
-		    enter: function () {
-			console.log("Entered books state.");
-		    },
-		    route: '/',
-		    connectOutlets: function(router) {
-			router.get('applicationController').connectOutlet('main', 'books', App.Book.all());
-		    },
 		}),
-		book: Ember.Route.extend({
-		    back: Ember.Route.transitionTo('root.books.index'),
-		    route: '/:id',
-		    enter: function () {
-			console.log("Entered book state.");
-		    },
-		    deserialize: function(router, context){
-			return App.Book.find(context.cote);
-		    },
-		    serialize: function(router, context){
-			return {
-			    id: context.cote
+		books: Ember.Route.extend({
+		    showBook: Ember.Route.transitionTo('books.book'),
+		    route: '/books',
+		    index: Ember.Route.extend({
+			enter: function () {
+			    console.log("Entered books state.");
+			},
+			route: '/',
+			connectOutlets: function(router) {
+			    router.get('applicationController').connectOutlet('main', 'books', App.Book.all());
+			},
+		    }),
+		    book: Ember.Route.extend({
+			back: Ember.Route.transitionTo('books.index'),
+			route: '/:id',
+			enter: function () {
+			    console.log("Entered book state.");
+			},
+			deserialize: function(router, context){
+			    return App.Book.find(context.cote);
+			},
+			serialize: function(router, context){
+			    return {
+				id: context.cote
+			    }
+			},
+			connectOutlets: function(router, aBook){
+			    router.get('applicationController').connectOutlet('main', 'book', aBook); 
 			}
-		    },
-		    connectOutlets: function(router, aBook){
-			router.get('applicationController').connectOutlet('main', 'book', aBook); 
-		    }
-		})
-	    }),
-	    users: Ember.Route.extend({
-		showUser: Ember.Route.transitionTo('users.user'),
-		route: '/users',
-		index: Ember.Route.extend({
-		    route: '/',
-		    connectOutlets: function(router) {
-			router.get('applicationController').connectOutlet('main', 'users', App.User.all());
-		    },
+		    })
 		}),
-		user: Ember.Route.extend({
-		    back: Ember.Route.transitionTo('root.users.index'),
-		    route: '/:id',
-		    deserialize: function(router, context){
-			return App.User.find(context.id);
-		    },
-		    serialize: function(router, context){
-			return {
-			    id: context.id
+		users: Ember.Route.extend({
+		    showUser: Ember.Route.transitionTo('users.user'),
+		    route: '/users',
+		    index: Ember.Route.extend({
+			route: '/',
+			connectOutlets: function(router) {
+			    router.get('applicationController').connectOutlet('main', 'users', App.User.all());
+			},
+		    }),
+		    user: Ember.Route.extend({
+			back: Ember.Route.transitionTo('users.index'),
+			route: '/:id',
+			deserialize: function(router, context){
+			    return App.User.find(context.id);
+			},
+			serialize: function(router, context){
+			    return {
+				id: context.id
+			    }
+			},
+			connectOutlets: function(router, user){
+			    router.get('applicationController').connectOutlet('main', 'user', user); 
 			}
-		    },
-		    connectOutlets: function(router, user){
-			router.get('applicationController').connectOutlet('main', 'user', user); 
-		    }
+		    })
 		})
 	    })
 	})

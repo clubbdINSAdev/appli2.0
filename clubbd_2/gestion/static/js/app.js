@@ -2,7 +2,6 @@ var __user = {};
 
 var App = Ember.Application.create({
     __self: this,
-    user: {},
     HomeView: Em.View.extend({
 	templateName: 'home'
     }),
@@ -20,8 +19,10 @@ var App = Ember.Application.create({
 	templateName: 'user'
     }),
     UsersController: Ember.ArrayController.extend(),
-    UsersView: Ember.View.extend({
-	templateName: 'users'
+    UsersView: Em.ContainerView.extend({
+	currentView: Ember.View.extend({
+	    templateName: 'users',	
+	})
     }),
     ApplicationController: Ember.Controller.extend(),
     ApplicationView: Ember.View.extend({
@@ -44,7 +45,7 @@ var App = Ember.Application.create({
 		index: Ember.Route.extend({
 		    route: '/',
 		    connectOutlets: function(router) {
-			router.get('applicationController').connectOutlet('login', 'loginTrue', {name: __user.prenom, surname: __user.nom});
+			router.get('applicationController').connectOutlet('login', 'loginTrue', App.Connected.current());
 		    }
 		}),
 		books: Ember.Route.extend({
@@ -79,27 +80,45 @@ var App = Ember.Application.create({
 		    })
 		}),
 		users: Ember.Route.extend({
-		    showUser: Ember.Route.transitionTo('users.user'),
 		    route: '/users',
+		    addUser: function () {
+			console.log("Add user");
+			$('#user_modal').modal({show: false});
+			var new_user = $('#new_user');
+		    },
+		    showUser: Ember.Route.transitionTo('users.user'),
 		    index: Ember.Route.extend({
 			route: '/',
 			connectOutlets: function(router) {
 			    router.get('applicationController').connectOutlet('main', 'users', App.User.all());
-			},
+			}
 		    }),
 		    user: Ember.Route.extend({
-			back: Ember.Route.transitionTo('users.index'),
+			//back: Ember.Route.transitionTo('users.index'),
+			enter: function () {
+			    console.log("user");
+			    setTimeout(function () {
+				$('#values').children().each(function () {
+				    var id = $(this).attr('id');
+				    var val = $(this).text().replace(/\t/g, '');
+				    console.log(id+"- input[name="+id+"]");
+				    $('#user_form_modal > fieldset').children('input[name='+id+']').val(val);
+				});
+				$('#user_modal').modal();
+			    }, 500);
+			},
 			route: '/:id',
-			deserialize: function(router, context){
+			deserialize: function(router, context) {
 			    return App.User.find(context.id);
 			},
-			serialize: function(router, context){
+			serialize: function(router, context) {
 			    return {
 				id: context.id
 			    }
 			},
-			connectOutlets: function(router, user){
-			    router.get('applicationController').connectOutlet('main', 'user', user); 
+			connectOutlets: function(router, user) {
+			    var usersController = router.get('usersController');
+			    usersController.connectOutlet('user', {user: user});
 			}
 		    })
 		})
@@ -122,13 +141,39 @@ App.LoginFormView = Em.View.extend({
 	login(form.children('input[type=text]').val(), form.children('input[type=password]').val(), function (json) {
 	    console.log("got key");
 	    __user = json;
-	    
+	    json.firstName = json.prenom;
+	    json.lastName = json.nom;
+	    App.Connected.updateCurrent(json);
+
 	    if (json.api_key) {
 		console.log('goto root.logged.index')
 		App.router.transitionTo('root.logged.index');
 	    }
 	    // TODO: Get cookie
 	});
+    }
+});
+
+App.Connected = Em.Object.create({
+    __current: Em.Object.create({
+	firstName: null,
+	lastName: null,
+	adresse: null,
+	telephone: null,
+	mail: null,
+	id: null,
+	api_key: null,
+	fullName: function() {
+	    var firstName = this.get('firstName');
+	    var lastName = this.get('lastName');
+	    return firstName + ' ' + lastName;
+	}.property('firstName', 'lastName')
+    }),
+    updateCurrent: function (obj) {
+	this.__current.setProperties(obj); 
+    },
+    current: function () {
+	return this.__current;
     }
 });
 

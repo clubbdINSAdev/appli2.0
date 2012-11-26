@@ -42,9 +42,9 @@
 	
 	<script type="text/x-handlebars" data-template-name="loginTrue">
 	  {% verbatim %}
-	  <div class="navbar-form pull-right">
-            <p>Hello {{name}} {{surname}} !</p>
-          </div>
+          <p class="navbar-text pull-right" >Hello {{firstName}} ! 
+	    {{debug}}
+	  </p>
 	  {% endverbatim %}
 	</script>
 
@@ -78,41 +78,72 @@
 	<!-- User -->
 	<script type="text/x-handlebars" data-template-name="user">
 	  {% verbatim %}
-	  <a {{action back this href=true}}>Back</a>
-	  <h1>{{prenom}} {{nom}}</h1>
-	  <table class="table table-striped">
-	    <tr>
-	      <td>id</td><td>{{id}}</td>
-	    </tr>
-	    <tr>
-	      <td>telephone</td><td>{{telephone}}</td> 
-	    </tr>
-	    <tr>
-	      <td>adresse</td><td>{{adresse}}</td>
-	    </tr>
-	  </table>
+	  {{#with user}}
+	  <div id="values" class="" style="display: none">
+	    <div id="lastname">
+	      {{nom}}
+	    </div>
+	    <div id="firstname">
+	      {{prenom}}
+	    </div>
+	    <div id="email">
+	      {{email}}
+	    </div>
+	    <div id="adresse">
+	      {{adresse}}
+	    </div>
+	  </div>
+	  {{/with}}
+
+	  <div class="modal-header">
+	    Update
+	  </div>
+	  <div class="modal-body">
+	    <form id="user_form_modal" >
+	      <fieldset>
+		<label>Nom:</label><input type="text" name="lastname" >
+		<label>Prenom:</label><input type="text" name="firstname"  >
+		<label>Email:</label><input type="email" name="email"  >
+		<label>Adresse:</label><input type="text" name="adresse"  >
+	      </fieldset>
+	    </form>
+	  </div>
 	  {% endverbatim %}
 	</script>
 
 	<!-- User list -->
 	<script type="text/x-handlebars" data-template-name="users">
+	  {% verbatim %}
+	  <div id="user_modal" class="modal hide fade">
+	    {{outlet}}
+	  </div>
+
           <div class="row">
 	    <h1>Utilisateurs</h1>
 	    <table class="table table-striped">
-	      <thead><th>#</th><th>Nom</th></thead>
-	    {% verbatim %}
+	      <thead><th>#</th><th>Nom</th><th>Actions</th></thead>
 	     {{#each user in controller}}
 	       {{#with user}}
-	         <tr {{action showUser this href=true}}><td>{{id}}</td><td>{{prenom}} {{nom}}</td></tr>
+	         <tr {{action showUser this}}><td>{{id}}</td><td>{{prenom}} {{nom}}</td>
+		   <td><button class="btn btn-danger"><i class="icon-remove-circle"></i></button>
+		       <button class="btn"><i class="icon-edit"></i></button>
+		       <button class="btn btn-primary"><i class="icon-arrow-right"></i></button>
+		   </td>
+		 </tr>
 	       {{/with }}
 	     {{/each }}
-	    {% endverbatim %}
 	      <tr>
-		<td><input type="text" name="firstname" value="" placeholder="first name"/></td>
-		<td><input type="text" name="lastName" value="" placeholder="last name"/></td>
+		<form id="new_user">
+		  <td><input type="text" name="id" value="" placeholder="id"/></td>
+		  <td>
+		    <input type="text" name="lastName" value="" placeholder="last name"/>
+		    <input type="text" name="firstName" value="" placeholder="first name"/>
+		  </td>
+		  <td><button {{action addUser}} class="btn btn-primary"><i class="icon-plus-sign"></i>&nbspAdd</button></td>
+		</form>
 	      </tr>
 	    </table>
-	    <button type="submit" class="btn btn-primary"><i class="icon-plus-sign"></i>&nbspAdd</button>
+	    {% endverbatim %}
 	  </div>
 	</script>
 

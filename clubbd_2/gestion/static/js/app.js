@@ -94,15 +94,18 @@ var App = Ember.Application.create({
 			}
 		    }),
 		    user: Ember.Route.extend({
-			//back: Ember.Route.transitionTo('users.index'),
+			back: Ember.Route.transitionTo('users.index'),
 			enter: function () {
 			    console.log("user");
 			    setTimeout(function () {
 				$('#values').children().each(function () {
 				    var id = $(this).attr('id');
-				    var val = $(this).text().replace(/\t/g, '');
+				    var val = $(this).text().replace(/[\n\t]* {2}/g, '');
 				    console.log(id+"- input[name="+id+"]");
 				    $('#user_form_modal > fieldset').children('input[name='+id+']').val(val);
+				});
+				$('#user_modal').on('hidden', function () {
+				    App.router.transitionTo('users.index');
 				});
 				$('#user_modal').modal();
 			    }, 500);
@@ -138,13 +141,14 @@ App.LoginFormView = Em.View.extend({
     templateName: 'loginForm',
     submit: function () {
 	form = $('#login');
+	console.log("Logging in");
 	login(form.children('input[type=text]').val(), form.children('input[type=password]').val(), function (json) {
 	    console.log("got key");
 	    __user = json;
 	    json.firstName = json.prenom;
 	    json.lastName = json.nom;
 	    App.Connected.updateCurrent(json);
-
+	    
 	    if (json.api_key) {
 		console.log('goto root.logged.index')
 		App.router.transitionTo('root.logged.index');
@@ -200,7 +204,7 @@ App.User.reopenClass({
     all: function () {
 	var allUsers = this.__listOfUsers;
 	
-	if (__user.api_key) {
+	if (__user.api_key && this.__listOfUsers.length == 0) {
 	    var url = '/rest/v1/users/all?login='+__user.mail+
 		'&api_key='+__user.api_key;
 	    jQuery.getJSON(url, function(json) {

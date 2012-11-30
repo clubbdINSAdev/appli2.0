@@ -83,35 +83,20 @@
 	<script type="text/x-handlebars" data-template-name="user">
 	  {% verbatim %}
 	  {{#with user}}
-	  <div id="values" class="" style="display: none">
-	    <div id="lastname">
-	      {{nom}}
-	    </div>
-	    <div id="firstname">
-	      {{prenom}}
-	    </div>
-	    <div id="email">
-	      {{email}}
-	    </div>
-	    <div id="adresse">
-	      {{adresse}}
-	    </div>
-	  </div>
-	  {{/with}}
-
 	  <div class="modal-header">
 	    Update
 	  </div>
 	  <div class="modal-body">
 	    <form id="user_form_modal" >
 	      <fieldset>
-		<label>Nom:</label><input type="text" name="lastname" >
-		<label>Prenom:</label><input type="text" name="firstname"  >
-		<label>Email:</label><input type="email" name="email"  >
-		<label>Adresse:</label><input type="text" name="adresse"  >
+		<label>Nom:</label><input type="text" name="lastname" {{bindAttr value="nom"}}>
+		<label>Prenom:</label><input type="text" name="firstname" {{bindAttr value="prenom"}}>
+		<label>Email:</label><input type="email" name="email" {{bindAttr value="email"}}>
+		<label>Adresse:</label><input type="text" name="adresse" {{bindAttr value="adresse"}} >
 	      </fieldset>
 	    </form>
 	  </div>
+	  {{/with}}
 	  {% endverbatim %}
 	</script>
 

@@ -120,18 +120,10 @@ var App = Ember.Application.create({
 			back: Ember.Route.transitionTo('users.index'),
 			enter: function () {
 			    console.log("user");
-			    setTimeout(function () {
-				$('#values').children().each(function () {
-				    var id = $(this).attr('id');
-				    var val = $(this).text().replace(/[\n\t]* {2}/g, '');
-				    console.log(id+"- input[name="+id+"]");
-				    $('#user_form_modal > fieldset').children('input[name='+id+']').val(val);
-				});
-				$('#user_modal').on('hidden', function () {
-				    App.router.transitionTo('users.index');
-				});
-				$('#user_modal').modal();
-			    }, 500);
+			    $('#user_modal').modal();
+			    $('#user_modal').on('hidden', function () {
+				App.router.transitionTo('users.index');
+			    });
 			},
 			route: '/:id',
 			deserialize: function(router, context) {

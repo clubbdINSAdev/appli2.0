@@ -1,6 +1,26 @@
 var __user = {};
 
 var App = Ember.Application.create({
+    alert: function (message, type, time) {
+	var message = message || '',
+	type = type || 'warning',
+	time = time || 3000;
+
+	var alert = $('<div>', {
+	    'class': 'fade in alert alert-'+type,
+	    html: message,
+	    css: {
+		margin: 'auto',
+		'margin-bottom': '10px'
+	    }
+	});
+
+	alert.prependTo('#main');
+
+	window.setTimeout(function (){
+	    alert.alert('close');
+	}, time);
+    },
     __self: this,
     HomeView: Em.View.extend({
 	templateName: 'home'
@@ -43,18 +63,7 @@ var App = Ember.Application.create({
 	    }),
 	    logged: Em.Route.extend({
 		enter: function() {
-		    var alert = $('<div>', {
-			'class': 'fade in alert alert-succes',
-			html: 'You are logged in !',
-			css: {
-			    margin: 'auto',
-			    'margin-bottom': '10px'
-			}
-		    });
-		    alert.prependTo('#main');
-		    window.setTimeout(function (){
-			alert.alert('close');
-		    }, 3000);
+		    App.alert('You are logged in !', 'success');
 		},
 		index: Ember.Route.extend({
 		    route: '/',
@@ -154,9 +163,21 @@ App.LoginFormController = Em.Controller.extend(),
 App.LoginFormView = Em.View.extend({
     templateName: 'loginForm',
     submit: function () {
-	form = $('#login');
+	var div = $('#login');
+	var form = div.children('form').first();
 	console.log("Logging in");
 	
+	var loading = $('<img>', {
+	    src: "../static/img/loading.png",
+	    alt: "loading...",
+	    css: {
+		display: 'none',
+		height: '30px', 
+		margin: 'auto',
+		'padding-top': '5px'
+	    },
+	    'class': 'nav pull-right'
+	});
 
 	login(form.children('input[type=text]').val(), form.children('input[type=password]').val(), function (json) {
 	    console.log("got key");
@@ -170,20 +191,16 @@ App.LoginFormView = Em.View.extend({
 		App.router.transitionTo('root.logged.index');
 	    }
 	    // TODO: Get cookie
+	}, function (err) {
+	    loading.fadeToggle();
+	    form.fadeToggle();
+	    App.alert('Login failed ...', 'error');
 	});
 	
-	var loading = $('<img>', {
-	    src: "../static/img/loading.png",
-	    alt: "loading...",
-	    css: {
-		height: '30px', 
-		margin: 'auto',
-		'padding-top': '5px'
-	    },
-	    'class': 'nav pull-right'
-	});
+	div.append(loading);
 
-	form.replaceWith(loading);
+	form.fadeToggle();
+	loading.fadeToggle();
     }
 });
 

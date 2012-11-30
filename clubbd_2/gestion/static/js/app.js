@@ -42,6 +42,20 @@ var App = Ember.Application.create({
 		}
 	    }),
 	    logged: Em.Route.extend({
+		enter: function() {
+		    var alert = $('<div>', {
+			'class': 'fade in alert alert-succes',
+			html: 'You are logged in !',
+			css: {
+			    margin: 'auto',
+			    'margin-bottom': '10px'
+			}
+		    });
+		    alert.prependTo('#main');
+		    window.setTimeout(function (){
+			alert.alert('close');
+		    }, 3000);
+		},
 		index: Ember.Route.extend({
 		    route: '/',
 		    connectOutlets: function(router) {
@@ -142,6 +156,8 @@ App.LoginFormView = Em.View.extend({
     submit: function () {
 	form = $('#login');
 	console.log("Logging in");
+	
+
 	login(form.children('input[type=text]').val(), form.children('input[type=password]').val(), function (json) {
 	    console.log("got key");
 	    __user = json;
@@ -155,6 +171,19 @@ App.LoginFormView = Em.View.extend({
 	    }
 	    // TODO: Get cookie
 	});
+	
+	var loading = $('<img>', {
+	    src: "../static/img/loading.png",
+	    alt: "loading...",
+	    css: {
+		height: '30px', 
+		margin: 'auto',
+		'padding-top': '5px'
+	    },
+	    'class': 'nav pull-right'
+	});
+
+	form.replaceWith(loading);
     }
 });
 

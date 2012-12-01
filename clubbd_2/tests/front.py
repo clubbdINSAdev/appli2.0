@@ -24,8 +24,8 @@ class FrontTest(unittest.TestCase):
         form.find_element_by_css_selector('input[type=password]').send_keys(self.pwd_true)
         form.find_element_by_tag_name('button').click()
         
-        self.driver.find_element_by_id('loginGreeting')
-
+        greeting = self.driver.find_element_by_id('loginGreeting')
+        self.assertTrue(greeting is not None)
 
     def test_login_success(self):
         self.driver.get('localhost:8000/gestion')
@@ -49,15 +49,32 @@ class FrontTest(unittest.TestCase):
         self.assertTrue(form2 is not None)
 
 
-
     def test_users(self):
         self.driver.get('localhost:8000/gestion/')
         self.login()
 
         self.driver.get('localhost:8000/gestion/#/users')
-        modal = self.driver.find_elements_by_id('user_modal')
+        modal = self.driver.find_element_by_id('user_modal')
         self.assertTrue(modal is not None)
 
+
+    def test_user(self):
+        self.driver.get('localhost:8000/gestion/')
+        self.login()
+
+        self.driver.get('localhost:8000/gestion/#/users')
+        #modal = self.driver.find_element_by_id('user_modal')
+        #self.assertTrue(modal is not None)
+
+        users = self.driver.find_elements_by_class_name('show_user')
+        print 'got users'
+        self.assertTrue(users is not None)
+        users[0].click()
+        print 'clicked first user'
+        header = self.drive.find_elements_by_class_name('modal-header')
+        print 'got modal header'
+        self.assertTrue(header is not None)
+        
 
     def tearDown(self):
         self.driver.quit()

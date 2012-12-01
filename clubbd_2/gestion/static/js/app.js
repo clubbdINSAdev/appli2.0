@@ -104,6 +104,9 @@ var App = Ember.Application.create({
 		}),
 		users: Ember.Route.extend({
 		    route: '/users',
+		    enter: function () {
+			
+		    },
 		    addUser: function () {
 			console.log("Add user");
 			$('#user_modal').modal({show: false});
@@ -117,7 +120,6 @@ var App = Ember.Application.create({
 			}
 		    }),
 		    user: Ember.Route.extend({
-			back: Ember.Route.transitionTo('users.index'),
 			enter: function () {
 			    console.log("user");
 			    $('#user_modal').modal();

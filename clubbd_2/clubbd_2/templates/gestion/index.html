@@ -96,6 +96,10 @@
 	      </fieldset>
 	    </form>
 	  </div>
+	  <div class="modal-footer">
+	    <button data-dismiss="modal" class="btn">Close</button>
+	    <button {{action updateUser this}}class="btn btn-primary">Update user</button>
+	  </div>
 	  {{/with}}
 	  {% endverbatim %}
 	</script>
@@ -116,7 +120,7 @@
 	         <tr><td>{{id}}</td><td>{{prenom}} {{nom}}</td>
 		   <td><button class="btn btn-danger"><i class="icon-remove-circle"></i></button>
 		       <button class="btn"><i class="icon-edit"></i></button>
-		       <button {{action showUser this}} class="btn btn-primary"><i class="icon-arrow-right"></i></button>
+		       <button {{action showUser this}} class="btn btn-primary show_user"><i class="icon-arrow-right"></i></button>
 		   </td>
 		 </tr>
 	       {{/with }}

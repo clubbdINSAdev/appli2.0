@@ -51,6 +51,98 @@ def user_exists(new_id):
         pass
     return user != None
 
+def book_exists(new_id):
+    book = None
+    try:
+        book = models.Ouvrage.objects.get(id=new_id)
+    except ObjectDoesNotExist:
+        pass
+    return book != None
+
+def generate_cote(categorie, numero, prefix):
+    full_prefix = str(categorie.prefix).zfill(2) + prefix
+    new_numero = int(numero)*10 + 1
+    new_cote = full_prefix + str(new_numero).zfill(3)
+    while book_exists(new_cote):
+        new_numero += 1
+        new_cote = full_prefix + str(new_numero).zfill(3)
+    return new_cote
+
+def get_serie(jSerie):
+    serie = None
+    try:
+        if jSerie.get('id') == None:
+            c = models.Categorie.objects.get(pk=post['cat_id'])
+            serie = models.Serie(nom=jSerie['nom'], prefix=jSerie'prefix'], categorie=c)
+        else:
+            s = models.Serie.objects.get(pk=jSerie['id'])
+    except KeyError as e:
+        return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+    return serie
+
+def get_editeur(jEditeur):
+    editeur = None
+    try:
+        if jEditeur.get('id') == None:
+            editeur = models.Editeur(nom=jEditeur['nom'])
+        else:
+            editeur = models.Editeur.objects.get(pk=jEditeur['id'])
+    except KeyError as e:
+        return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+    return editeur
+
+def get_auteur(id,nom):
+    auteur = None
+    if id == None:
+        auteur = models.Auteur(nom=nom)
+    else:
+        auteur = models.Auteur.objects.get(pk=id)
+    return auteur
+
+def get_auteurs(jAuteurs):
+    auteurs = []
+    try:
+        for jAuteur in jAuteurs:
+            auteurs.add(get_auteur(jAuteur.get('id'),jAuteur['nom']))
+    except KeyError as e:
+        return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+    return auteurs
+
+
+def ouvrage_heavy_lifting(query, args=None, limit=None):
+
+    if (query == "all"):
+        volumes = models.Volume.objects.all()
+        oneshots = models.OneShot.objects.all()
+    elif (query == "filter"):
+        volumes = models.Volume.objects.filter(**args)
+        oneshots = models.OneShot.objects.filter(**args)
+
+    def transform(el):
+        res = restify(el, json=False)
+
+        del res['ouvrage_ptr_id']
+
+        if "Volume" in str(type(el)):
+            res['in_serie'] = True
+        else:
+            res['in_serie'] = False
+
+        return res
+
+    volumes = map(transform, volumes)
+    oneshots = map(transform, oneshots)
+
+    if limit is None:
+        limit = len(volumes) + len(oneshots)
+    elif type(limit) is not int:
+        try:
+            limit = int(limit)
+        except:
+            limit = len(volumes) + len(oneshots)
+            
+    return HttpResponse(json.dumps((volumes + oneshots)[:limit], default=json_date), content_type="application/json")
+
 def require_api_key(func):
     def wrapper(request, *args, **kwargs):
         login = request.GET.get('login')
@@ -109,11 +201,17 @@ def get_user_by_id(request, id):
         return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
     elif request.method == 'PUT':
         post = json.loads(request.body)
-        u = models.Utilisateur(id=post['id'],mail=post['mail'])
-        u.nom = post.get('nom')
-        u.prenom = post.get('prenom')
-        u.telephone = post.get('telephone')
-        u.adresse = post.get('adresse')
+        u = models.Utilisateur(id=post['id'])
+        if post.get('mail') != None:
+            u.mail = post['mail']
+        if post.get('nom') != None:
+            u.nom = post['nom']
+        if post.get('prenom') != None:
+            u.prenom = post['prenom']
+        if post.get('telephone') != None:
+            u.telephone = post['telephone']
+        if post.get('adresse') != None:
+            u.adresse = post['adresse']
         u.save()
         s = bcrypt.gensalt(12)
         pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
@@ -169,45 +267,35 @@ def authenticate(request):
     else:
         return HttpResponse("KO", content_type="application/json")
 
-def ouvrage_heavy_lifting(query, args=None, limit=None):
 
-    if (query == "all"):
-        volumes = models.Volume.objects.all()
-        oneshots = models.OneShot.objects.all()
-    elif (query == "filter"):
-        volumes = models.Volume.objects.filter(**args)
-        oneshots = models.OneShot.objects.filter(**args)
-
-    def transform(el):
-        res = restify(el, json=False)
-
-        del res['ouvrage_ptr_id']
-
-        if "Volume" in str(type(el)):
-            res['in_serie'] = True
-        else:
-            res['in_serie'] = False
-
-        return res
-
-    volumes = map(transform, volumes)
-    oneshots = map(transform, oneshots)
-
-    if limit is None:
-        limit = len(volumes) + len(oneshots)
-    elif type(limit) is not int:
-        try:
-            limit = int(limit)
-        except:
-            limit = len(volumes) + len(oneshots)
-            
-    return HttpResponse(json.dumps((volumes + oneshots)[:limit], default=json_date), content_type="application/json")
-
-@require_http_methods(['GET'])
+@require_http_methods(["GET", "POST"])
 def get_ouvrages(request):
     print "limit is "+str(request.GET.get('limit', None))
-    return ouvrage_heavy_lifting("all", limit=request.GET.get('limit', None))
+    if request.method == 'GET':
+        return ouvrage_heavy_lifting("all", limit=request.GET.get('limit', None))
+    elif request.method == 'POST':
+        post = json.loads(request.body)
+        if bool(post.get('in_serie')):
+            jSerie = post['serie']
+            try:
+                serie = get_serie(jSerie)
+                editeur = get_editeur
+                generate_cote(c,post['numero'],s.prefix)
+                date = date.fromtimestamp(post['date_entree'])
+                auteurs = get_auteurs(post['auteurs'])
+                volume = models.Volume(cote=new_cote, titre=post['title'], isbn=post['isbn'],
+                        description=post['description'], date_entree=date, editeur=editeuri,
+                        is_manga=post[is_manga], auteurs=auteurs, nouveaute=post['nouveaute'])
+                volume.save()
+            except KeyError as e:
+                return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+        else:
+            pass #oneshot
 
+
+
+
+@require_http_methods(["GET", "PUT", "DELETE"])
 def get_ouvrage_by_id(request, id):
     try:
         el = models.Volume.objects.get(pk=id)

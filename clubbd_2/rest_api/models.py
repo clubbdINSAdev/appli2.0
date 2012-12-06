@@ -21,7 +21,7 @@ class Ouvrage(models.Model):
     is_manga = models.BooleanField()
     tags = models.ManyToManyField(Tag)
     auteurs = models.ManyToManyField(Auteur)
-    empruntable = models.BooleanField()
+    nouveaute = models.BooleanField()
 
 class Utilisateur(models.Model):
     id = models.BigIntegerField(primary_key=True)

@@ -20,7 +20,7 @@
         <link rel="stylesheet" href="../static/css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="../static/css/main.css">
 
-        <script src="../static/js/lib/modernizr-2.6.1-respond-1.1.0.min.js"></script>
+        <script src="../static/js/libs/modernizr-2.6.1-respond-1.1.0.min.js"></script>
     </head>
     <body>
         <!--[if lt IE 7]>
@@ -32,19 +32,23 @@
 	<!-- LoginForm -->
 	<script type="text/x-handlebars" data-template-name="loginForm">
 	  {% verbatim %}
-	  <form id="login" class="navbar-form pull-right">
-            <input class="span2" type="text" placeholder="Email">
-            <input class="span2" type="password" placeholder="Password">
-            <button type="submit" class="btn">Sign in</button>
-          </form>
+	  <div id="login">
+	    <form id="login" class="navbar-form pull-right">
+              <input class="span2" type="text" placeholder="Email">
+              <input class="span2" type="password" placeholder="Password">
+	      <button type="submit" class="btn">Sign in</button>
+            </form>
+	  </div>
 	  {% endverbatim %}
 	</script>
 	
 	<script type="text/x-handlebars" data-template-name="loginTrue">
 	  {% verbatim %}
-	  <div class="navbar-form pull-right">
-            <p>Hello {{name}} {{surname}} !</p>
-          </div>
+	  <div id="loginGreeting" class="nav pull-right">
+	    {{#with user}}
+            <p>Hello {{prenom}} {{nom}} !</p>
+	    {{/with}}
+	  </div>
 	  {% endverbatim %}
 	</script>
 
@@ -78,41 +82,61 @@
 	<!-- User -->
 	<script type="text/x-handlebars" data-template-name="user">
 	  {% verbatim %}
-	  <a {{action back this href=true}}>Back</a>
-	  <h1>{{prenom}} {{nom}}</h1>
-	  <table class="table table-striped">
-	    <tr>
-	      <td>id</td><td>{{id}}</td>
-	    </tr>
-	    <tr>
-	      <td>telephone</td><td>{{telephone}}</td> 
-	    </tr>
-	    <tr>
-	      <td>adresse</td><td>{{adresse}}</td>
-	    </tr>
-	  </table>
+	  {{#with user}}
+	  <div class="modal-header">
+	    Update
+	  </div>
+	  <div class="modal-body">
+	    <form id="user_form_modal" >
+	      <fieldset>
+		<label>Nom:</label><input type="text" name="lastname" {{bindAttr value="nom"}}>
+		<label>Prenom:</label><input type="text" name="firstname" {{bindAttr value="prenom"}}>
+		<label>Email:</label><input type="email" name="email" {{bindAttr value="email"}}>
+		<label>Adresse:</label><input type="text" name="adresse" {{bindAttr value="adresse"}} >
+	      </fieldset>
+	    </form>
+	  </div>
+	  <div class="modal-footer">
+	    <button data-dismiss="modal" class="btn">Close</button>
+	    <button {{action updateUser this}}class="btn btn-primary">Update user</button>
+	  </div>
+	  {{/with}}
 	  {% endverbatim %}
 	</script>
 
 	<!-- User list -->
 	<script type="text/x-handlebars" data-template-name="users">
+	  {% verbatim %}
+	  <div id="user_modal" class="modal hide fade">
+	    {{outlet}}
+	  </div>
+
           <div class="row">
 	    <h1>Utilisateurs</h1>
 	    <table class="table table-striped">
-	      <thead><th>#</th><th>Nom</th></thead>
-	    {% verbatim %}
+	      <thead><th>#</th><th>Nom</th><th>Actions</th></thead>
 	     {{#each user in controller}}
 	       {{#with user}}
-	         <tr {{action showUser this href=true}}><td>{{id}}</td><td>{{prenom}} {{nom}}</td></tr>
+	         <tr><td>{{id}}</td><td>{{prenom}} {{nom}}</td>
+		   <td><button class="btn btn-danger"><i class="icon-remove-circle"></i></button>
+		       <button class="btn"><i class="icon-edit"></i></button>
+		       <button {{action showUser this}} class="btn btn-primary show_user"><i class="icon-arrow-right"></i></button>
+		   </td>
+		 </tr>
 	       {{/with }}
 	     {{/each }}
-	    {% endverbatim %}
 	      <tr>
-		<td><input type="text" name="firstname" value="" placeholder="first name"/></td>
-		<td><input type="text" name="lastName" value="" placeholder="last name"/></td>
+		<form id="new_user">
+		  <td><input type="text" name="id" value="" placeholder="id"/></td>
+		  <td>
+		    <input type="text" name="lastName" value="" placeholder="last name"/>
+		    <input type="text" name="firstName" value="" placeholder="first name"/>
+		  </td>
+		  <td><button {{action addUser}} class="btn btn-primary"><i class="icon-plus-sign"></i>&nbspAdd</button></td>
+		</form>
 	      </tr>
 	    </table>
-	    <button type="submit" class="btn btn-primary"><i class="icon-plus-sign"></i>&nbspAdd</button>
+	    {% endverbatim %}
 	  </div>
 	</script>
 
@@ -188,7 +212,7 @@
             </div>
         </div>
 
-        <div class="container">
+        <div id="main" class="container">
 
           <!-- Main hero unit for a primary marketing message or call to action -->
             {% verbatim %}
@@ -197,7 +221,7 @@
 
 
             <footer>
-              <p>&copy; Company 2012</p>
+              <p>&copy; B&ampM 2012</p>
             </footer>
 	    
         </div> <!-- /container -->

@@ -74,13 +74,13 @@ var App = Ember.Application.create({
 	    }),
 	    logged: Em.Route.extend({
 		route: '/logged',
+		goToUsers: Ember.Route.transitionTo('users.index'),
+		goToBooks: Ember.Route.transitionTo('books.index'),
 		enter: function() {
 		    App.alert('You are logged in !', 'success');
 		},
 		index: Ember.Route.extend({
 		    route: '/',
-		    goToUsers: Ember.Route.transitionTo('users.index'),
-		    goToBooks: Ember.Route.transitionTo('books.index'),
 		    connectOutlets: function(router) {
 			router.get('applicationController').connectOutlet('main', 'logged');
 			router.get('applicationController').connectOutlet('login', 'loginTrue', App.Connected.current());

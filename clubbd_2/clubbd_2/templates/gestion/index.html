@@ -52,7 +52,6 @@
 	  {% endverbatim %}
 	</script>
 
-
 	<!-- Book -->
 	<script type="text/x-handlebars" data-template-name="book">
 	  {% verbatim %}
@@ -64,19 +63,17 @@
 
 	<!-- Book list -->
 	<script type="text/x-handlebars" data-template-name="books">
-          <div class="row">
 	    <h1>Bouquins</h1>
-	    <table class="table table-striped">
+	    <table class="table table-striped table-condensed table-hover">
 	      <thead><th>#</th><th>Titre</th></thead>
 	    {% verbatim %}
 	     {{#each book in controller}}
 	       {{#with book}}
-	         <tr {{action showBook this href=true}}><td>{{cote}}</td><td>{{titre}}</td></tr>
+	         <tr {{action showBook this href=true}} ><td>{{cote}}</td><td>{{titre}}</td></tr>
 	       {{/with }}
 	     {{/each }}
 	    {% endverbatim %}
 	    </table>
-	  </div>
 	</script>
 
 	<!-- User -->

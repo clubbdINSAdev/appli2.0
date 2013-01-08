@@ -32,7 +32,6 @@ class Utilisateur(models.Model):
     adresse = models.TextField(null=True)
 
 class Authentification(models.Model):
-    mail = models.EmailField(unique=True)
     hash = models.CharField(max_length=512, blank=False)
     salt = models.CharField(max_length=512, blank=False)
     api_key = models.CharField(max_length=512, blank=False)
@@ -49,6 +48,7 @@ class Serie(models.Model):
 
 class OneShot(Ouvrage):
     categorie = models.ForeignKey(Categorie)
+    prefix = models.CharField(max_length=6)
 
 class Volume(Ouvrage):
     serie = models.ForeignKey(Serie)

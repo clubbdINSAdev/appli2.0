@@ -1,3 +1,8 @@
+/*******************************************************
+TODO'S:
+- Move stuff into different files
+********************************************************/
+
 var App = Ember.Application.create({
     alert: function (message, type, time) {
 	var message = message || '',
@@ -98,7 +103,7 @@ var App = Ember.Application.create({
 			},
 			route: '/',
 			connectOutlets: function(router) {
-			    router.get('applicationController').connectOutlet('main', 'books', App.Book.all());
+			    router.get('applicationController').connectOutlet('main', 'books', App.Book.findAll());
 			},
 		    }),
 		    book: Ember.Route.extend({
@@ -239,25 +244,48 @@ App.Connected = Em.Object.create({
     }
 });
 
-App.Book = Ember.Object.extend();
-App.Book.reopenClass({
-    __listOfBooks: Em.A(),
-    all: function () {
-	var allBooks = this.__listOfBooks;
-	jQuery.getJSON('/rest/v1/books/all?limit=50', function(json) {
-	    console.log("Got json, " + json.length + " books");
-	    allBooks.clear();
-	    allBooks.pushObjects(json);
-	});
-	return this.__listOfBooks;
-    },
-    find: function (id) {
-	return this.__listOfBooks.findProperty('cote', id);
-    }
+App.Book = DS.Model.extend({
+    is_manga: DS.attr('string'),
+    isbn: DS.attr('string'), 
+    description: DS.attr('string'),
+    ean: DS.attr('string'),
+    serie_id: DS.attr('number'), 
+    numero: DS.attr('number'),
+    cote: DS.attr('string'), 
+    in_serie: DS.attr('boolean'), 
+    date_entree: DS.attr('date'), 
+    titre: DS.attr('string'),
+    empruntable: DS.attr('boolean'),
+
+    url: '/books' 
 });
 
-App.User = Ember.Object.extend();
-App.User.reopenClass({
+
+// App.Book_old.reopenClass({
+//     __listOfBooks: Em.A(),
+//     all: function () {
+// 	var allBooks = this.__listOfBooks;
+// 	jQuery.getJSON('/rest/v1/books/all?limit=50', function(json) {
+// 	    console.log("Got json, " + json.length + " books");
+// 	    allBooks.clear();
+// 	    allBooks.pushObjects(json);
+// 	});
+// 	return this.__listOfBooks;
+//     },
+//     find: function (id) {
+// 	return this.__listOfBooks.findProperty('cote', id);
+//     }
+// });
+
+App.User = DS.Model.extend({
+    adresse: DS.attr('string'),
+    mail: DS.attr('string'),
+    nom: DS.attr('string'),
+    prenom: DS.attr('string'),
+    telephone: DS.attr('string')
+});
+
+/*App.User_old.reopenClass({
     __listOfUsers: Em.A(),
     all: function () {
 	console.log('get all users');
@@ -273,13 +301,45 @@ App.User.reopenClass({
 		allUsers.clear();
 		allUsers.pushObjects(json);
 	    });
-	} 
+	}
 	return this.__listOfUsers;
     },
     find: function (id) {
 	return this.__listOfUsers.findProperty('id', id);
     }
+});*/
+
+
+App.adapter = DS.Adapter.create({
+    url: '/rest/v',
+    version: 1,
+    find: function (store, type, id) {
+	var url = this.url + this.version + type.url + '/' + id,
+	self = this;
+	
+	jQuery.getJSON(url, function(data) {
+	    self.didFindRecord(store, type, data, id);
+	});
+    },
+    findMany: function (store, type, ids) {
+	// TODO
+    },
+    findQuery: function (store, type, query, result) {
+	// TODO
+    },
+    findAll: function (store, type) {
+	var url = this.url + this.version + type.url,
+	self = this;
+	jQuery.getJSON(url, function(data) {
+	    self.didFindAll(type, data);
+	});
+    }
+    // Write
 });
 
+App.Store = DS.Store.create({
+    revision: 11,
+    adapter: App.adapter
+});
 
 App.initialize();

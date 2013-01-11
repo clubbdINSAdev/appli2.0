@@ -61,10 +61,10 @@ var App = Ember.Application.create({
 		enter: function () {
 		    var cur = sessionStorage.getItem('current');
 		    if (cur) {
-			var cur = JSON.parse(cur);
+			cur = JSON.parse(cur);
 			console.log('Already logged in. (as '+cur.lastName+')')
 			App.Connected.updateCurrent(cur);
-			App.router.transitionTo('root.logged.index');
+			App.router.transitionTo('logged.index');
 		    }
 		},
 		connectOutlets: function(router) {
@@ -81,6 +81,9 @@ var App = Ember.Application.create({
 		},
 		index: Ember.Route.extend({
 		    route: '/',
+		    enter: function () {
+			console.log('Know in logged in zone.');
+		    },
 		    connectOutlets: function(router) {
 			router.get('applicationController').connectOutlet('main', 'logged');
 			router.get('applicationController').connectOutlet('login', 'loginTrue', App.Connected.current());

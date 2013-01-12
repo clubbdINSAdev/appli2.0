@@ -142,8 +142,8 @@ if ('undefined' !== typeof window) {
 
 })();
 
-// Version: v1.0.0-pre.2-370-g6a165ad
-// Last commit: 6a165ad (2013-01-10 15:58:36 -0800)
+// Version: v1.0.0-pre.2-371-g2426cb9
+// Last commit: 2426cb9 (2013-01-11 16:43:52 -0800)
 
 
 (function() {
@@ -21979,8 +21979,18 @@ Ember.Router = Ember.Object.extend({
     this.notifyPropertyChange('url');
   },
 
-  transitionTo: function() {
-    this.router.transitionTo.apply(this.router, arguments);
+  transitionTo: function(passedName) {
+    var args = [].slice.call(arguments), name;
+
+    if (!this.router.hasRoute(passedName)) {
+      name = args[0] = passedName + '.index';
+    } else {
+      name = passedName;
+    }
+
+    Ember.assert("The route " + passedName + " was not found", this.router.hasRoute(name));
+
+    this.router.transitionTo.apply(this.router, args);
     this.notifyPropertyChange('url');
   },
 
@@ -25611,8 +25621,8 @@ Ember States
 
 
 })();
-// Version: v1.0.0-pre.2-370-g6a165ad
-// Last commit: 6a165ad (2013-01-10 15:58:36 -0800)
+// Version: v1.0.0-pre.2-371-g2426cb9
+// Last commit: 2426cb9 (2013-01-11 16:43:52 -0800)
 
 
 (function() {

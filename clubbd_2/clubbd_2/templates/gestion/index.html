@@ -55,7 +55,7 @@
 	<!-- Book -->
 	<script type="text/x-handlebars" data-template-name="book">
 	  {% verbatim %}
-	  <a {{action back this href=true}}>Back</a>
+	  {{#linkTo "books"}}>Back{{/linkTo}}
 	  <h1>{{titre}}</h1>
 	  <p>{{description}}</p>
 	  {% endverbatim %}
@@ -69,7 +69,7 @@
 	    {% verbatim %}
 	     {{#each book in controller}}
 	       {{#with book}}
-	         <tr {{action showBook this href=true}} ><td>{{cote}}</td><td>{{titre}}</td></tr>
+	         <tr>{{#linkTo "book" this}}<td>{{cote}}</td><td>{{titre}}</td>{{/linkTo}}</tr>
 	       {{/with }}
 	     {{/each }}
 	    {% endverbatim %}
@@ -116,7 +116,7 @@
 	       {{#with user}}
 	         <tr><td>{{id}}</td><td>{{prenom}} {{nom}}</td>
 		   <td><button class="btn btn-danger"><i class="icon-remove-circle"></i></button>
-		     <button {{action showUser this}} class="btn btn-primary"><i class="icon-edit"></i></button>
+		     <button class="btn btn-primary">{{#linkTo "user" this}}<i class="icon-edit"></i> {{/linkTo}}</button>
 		   </td>
 		 </tr>
 	       {{/with }}
@@ -184,8 +184,8 @@
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Navigation <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                    <li><a {{action goToUsers}}>Users</a></li>
-				    <li><a {{action goToBooks}}>Books</a></li>
+                                    <li>{{#linkTo "users"}}Users{{/linkTo}}</li>
+				    <li>{{#linkTo "books"}}Books{{/linkTo}}</li>
                                 </ul>
                             </li>
                         </ul>

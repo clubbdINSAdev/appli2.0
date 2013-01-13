@@ -29,13 +29,13 @@ var App = Ember.Application.create({
 });
 
 App.IndexRoute = Ember.Route.extend({
-    enter: function () {
+    redirect: function () {
 	var cur = sessionStorage.getItem('current');
 	if (cur) {
 	    cur = JSON.parse(cur);
 	    console.log('Already logged in. (as '+cur.lastName+')')
 	    App.Connected.updateCurrent(cur);
-	    App.router.transitionTo('logged');
+	    this.transitionTo('logged');
 	}
     },
     renderTemplate: function() {
@@ -126,7 +126,6 @@ App.UserRoute = Ember.Route.extend({
 })
 
 App.Router.map(function(match) {
-    match('/').to('home');
     match('/logged').to('logged', function(match) {
 	match('/books').to('books', function(match) {
 	    match('/:id').to('book');

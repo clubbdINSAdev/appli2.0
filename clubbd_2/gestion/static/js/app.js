@@ -25,151 +25,120 @@ var App = Ember.Application.create({
 	}, time);
     },
     __self: this,
-    HomeView: Em.View.extend({
-	templateName: 'home'
-    }),
-    LoggedController: Em.Controller.extend(),
-    LoggedView: Em.View.extend({
-	templateName: 'loggedHome'
-    }),
-    HomeController: Em.Controller.extend(),
-    BookController: Em.ObjectController.extend(),
-    BookView: Em.View.extend({
-	templateName: 'book'
-    }),
-    BooksController: Ember.ArrayController.extend(),
-    BooksView: Ember.View.extend({
-	templateName: 'books'
-    }),
-    UserController: Em.ObjectController.extend(),
-    UserView: Em.View.extend({
-	templateName: 'user'
-    }),
-    UsersController: Ember.ArrayController.extend(),
-    UsersView: Em.ContainerView.extend({
-	currentView: Ember.View.extend({
-	    templateName: 'users',	
-	})
-    }),
-    ApplicationController: Ember.Controller.extend(),
-    ApplicationView: Ember.View.extend({
-	templateName: 'application',
-    }),
-    Router: Ember.Router.extend({
-	enableLogging: true,
-	root: Ember.Route.extend({
-	    shout: function () {
-		window.alert("More information ! NOT !");
-	    },
-	    index: Ember.Route.extend({
-		route: '/',
-		enter: function () {
-		    var cur = sessionStorage.getItem('current');
-		    if (cur) {
-			cur = JSON.parse(cur);
-			console.log('Already logged in. (as '+cur.lastName+')')
-			App.Connected.updateCurrent(cur);
-			App.router.transitionTo('logged.index');
-		    }
-		},
-		connectOutlets: function(router) {
-		    router.get('applicationController').connectOutlet('main', 'home');
-		    router.get('applicationController').connectOutlet('login', 'loginForm');
-		}
-	    }),
-	    logged: Em.Route.extend({
-		route: '/logged',
-		goToUsers: Ember.Route.transitionTo('users.index'),
-		goToBooks: Ember.Route.transitionTo('books.index'),
-		enter: function() {
-		    App.alert('You are logged in !', 'success');
-		},
-		index: Ember.Route.extend({
-		    route: '/',
-		    enter: function () {
-			console.log('Know in logged in zone.');
-		    },
-		    connectOutlets: function(router) {
-			router.get('applicationController').connectOutlet('main', 'logged');
-			router.get('applicationController').connectOutlet('login', 'loginTrue', App.Connected.current());
-		    }
-		}),
-		books: Ember.Route.extend({
-		    showBook: Ember.Route.transitionTo('books.book'),
-		    route: '/books',
-		    index: Ember.Route.extend({
-			enter: function () {
-			    console.log("Entered books state.");
-			},
-			route: '/',
-			connectOutlets: function(router) {
-			    router.get('applicationController').connectOutlet('main', 'books', App.Book.findAll());
-			},
-		    }),
-		    book: Ember.Route.extend({
-			back: Ember.Route.transitionTo('books.index'),
-			route: '/:id',
-			enter: function () {
-			    console.log("Entered book state.");
-			},
-			deserialize: function(router, context){
-			    return App.Book.find(context.cote);
-			},
-			serialize: function(router, context){
-			    return {
-				id: context.cote
-			    }
-			},
-			connectOutlets: function(router, aBook){
-			    router.get('applicationController').connectOutlet('main', 'book', aBook); 
-			}
-		    })
-		}),
-		users: Ember.Route.extend({
-		    route: '/users',
-		    enter: function () {
-			
-		    },
-		    addUser: function () {
-			console.log("Add user");
-			$('#user_modal').modal({show: false});
-			var new_user = $('#new_user');
-		    },
-		    showUser: Ember.Route.transitionTo('users.user'),
-		    index: Ember.Route.extend({
-			route: '/',
-			connectOutlets: function(router) {
-			    router.get('applicationController').connectOutlet('main', 'users', App.User.all());
-			}
-		    }),
-		    user: Ember.Route.extend({
-			enter: function () {
-			    console.log("user");
-			    $('#user_modal').modal();
-			    $('#user_modal').on('hidden', function () {
-				App.router.transitionTo('users.index');
-			    });
-			},
-			route: '/:id',
-			deserialize: function(router, context) {
-			    return App.User.find(context.id);
-			},
-			serialize: function(router, context) {
-			    return {
-				id: context.id
-			    }
-			},
-			connectOutlets: function(router, user) {
-			    var usersController = router.get('usersController');
-			    usersController.connectOutlet('user', {user: user});
-			}
-		    })
-		})
-	    })
-	})
-    })
+    enableLogging: true,
 });
 
+App.IndexRoute = Ember.Route.extend({
+    enter: function () {
+	var cur = sessionStorage.getItem('current');
+	if (cur) {
+	    cur = JSON.parse(cur);
+	    console.log('Already logged in. (as '+cur.lastName+')')
+	    App.Connected.updateCurrent(cur);
+	    App.router.transitionTo('logged');
+	}
+    },
+    renderTemplates: function() {
+	this.render('home', {
+	    outlet: 'main'
+	})
+	this.render('loginForm', {
+	    outlet: 'login'
+	});
+    }
+});
+
+App.LoggedRoute = Em.Route.extend({
+    enter: function() {
+	App.alert('You are logged in !', 'success');
+    },
+    model: function () {
+	return App.Connected.current();
+    },
+    renderTemplates: function () {
+	this.render('logged', {
+	    outlet: 'main'
+	});
+	this.render('loginTrue', {
+	    outlet: 'login'
+	});
+    }
+});
+
+App.BooksRoute = Ember.Route.extend({
+    enter: function () {
+	console.log("Entered books state.");
+    },
+    model: function () {
+	return App.Book.findAll();
+    },
+    renderTemplates: function () {
+	this.render('books', {
+	    outlet: 'main'
+	});
+    }
+});
+
+App.BookRoute = Ember.Route.extend({
+    enter: function () {
+	console.log("Entered book state.");
+    },
+    model: function(params){
+	return App.Book.find(params.id);
+    },
+    renderTemplates: function () {
+	this.render('book', {
+	    outlet: 'main'
+	});
+    }
+});
+
+App.UsersRoute = Ember.Route.extend({
+    addUser: function () {
+	console.log("Add user");
+	$('#user_modal').modal({show: false});
+	var new_user = $('#new_user');
+    },
+    model: function () {
+	return  App.User.all();
+    },
+    renderTemplates: function () {
+	this.render('users', {
+	    outlet: 'main'
+	});
+    }
+});	
+
+
+App.UserRoute = Ember.Route.extend({
+    enter: function () {
+	console.log("user");
+	$('#user_modal').modal();
+	$('#user_modal').on('hidden', function () {
+	    App.router.transitionTo('users.index');
+	});
+    },
+    model: function(params) {
+	return App.User.find(params.id);
+    },
+    renderTemplates: function () {
+	this.render('user', {
+	    outlet: 'main'
+	});
+    }
+})
+
+App.Router.map(function(match) {
+    match('/').to('home');
+    match('/logged').to('logged', function(match) {
+	match('/books').to('books', function(match) {
+	    match('/:id').to('book');
+	});
+	match('/users').to('users', function(match) {
+	    match('/:id').to('user');
+	});
+    });
+})
 
 App.LoginTrueController = Em.Controller.extend(),
 App.LoginTrueView = Em.View.extend({
@@ -229,12 +198,12 @@ App.Connected = Em.Object.create({
 	telephone: null,
 	mail: null,
 	id: null,
-	api_key: null,
-	fullName: function() {
+	api_key: null
+	/*fullName: function() {
 	    var firstName = this.get('firstName');
 	    var lastName = this.get('lastName');
 	    return firstName + ' ' + lastName;
-	}.property('firstName', 'lastName')
+	}.property('firstName', 'lastName')*/
     }),
     updateCurrent: function (obj) {
 	this.__current.setProperties(obj); 
@@ -337,7 +306,7 @@ App.adapter = DS.Adapter.create({
     // Write
 });
 
-App.Store = DS.Store.create({
+App.Store = DS.Store.extend({
     revision: 11,
     adapter: App.adapter
 });

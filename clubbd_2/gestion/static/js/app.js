@@ -67,7 +67,7 @@ App.LoggedBooksRoute = Ember.Route.extend({
 	console.log("Entered books state.");
     },
     model: function () {
-	return App.Book.findAll();
+	return App.Book.find();
     },
     renderTemplate: function () {
 	this.render('books', {
@@ -224,8 +224,11 @@ App.Book = DS.Model.extend({
     date_entree: DS.attr('date'), 
     titre: DS.attr('string'),
     empruntable: DS.attr('boolean'),
+});
 
-    url: '/books' 
+App.Book.reopenClass({
+    url: '/books',
+    args: '?limit=50'
 });
 
 
@@ -296,10 +299,13 @@ App.adapter = DS.Adapter.create({
 	// TODO
     },
     findAll: function (store, type) {
-	var url = this.url + this.version + type.url,
+	console.log('find all');
+	var url = this.url + this.version + type.url + '/all'+ type.args,
 	self = this;
+
+	console.log(url);
 	jQuery.getJSON(url, function(data) {
-	    self.didFindAll(type, data);
+	    self.didFindAll(store, type, {books: data});
 	});
     }
     // Write

@@ -161,23 +161,26 @@ App.LoginFormView = Em.View.extend({
 	    'class': 'nav pull-right'
 	});
 
-	login(form.children('input[type=text]').val(), form.children('input[type=password]').val(), function (json) {
-	    console.log("got key");
-	    json.firstName = json.prenom;
-	    json.lastName = json.nom;
-	    App.Connected.updateCurrent(json);
-	    sessionStorage.setItem('current', JSON.stringify(App.Connected.current()));
-	    
-	    if (json.api_key) {
-		console.log('goto root.logged.index')
-		App.router.transitionTo('root.logged.index');
-	    }
-	    // TODO: Get cookie
-	}, function (err) {
-	    loading.fadeToggle();
-	    form.fadeToggle();
-	    App.alert('Login failed ...', 'error');
-	});
+	login(form.children('input[type=text]').val(),
+	      form.children('input[type=password]').val(), 
+	      function (json) {
+		  console.log("got key");
+		  json.firstName = json.prenom;
+		  json.lastName = json.nom;
+		  App.Connected.updateCurrent(json);
+		  sessionStorage.setItem('current', JSON.stringify(App.Connected.current()));
+		  
+		  if (json.api_key) {
+		      console.log('logged')
+		      App.Router.router.transitionTo('logged');
+		  }
+		  // TODO: Get cookie
+	      }, function (err) {
+		  console.log('login failed: '+err.reason);
+		  loading.fadeToggle();
+		  form.fadeToggle();
+		  App.alert('Login failed ...', 'error');
+	      });
 	
 	div.append(loading);
 

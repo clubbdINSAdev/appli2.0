@@ -62,12 +62,12 @@
 	</script>
 
 	<!-- Book list -->
-	<script type="text/x-handlebars" data-template-name="books">
-	    <h1>Bouquins</h1>
+	<script type="text/x-handlebars" data-template-name="loggedBooks">
+	    <h1>Bouquins {{test}}</h1>
 	    <table class="table table-striped table-condensed table-hover">
 	      <thead><th>#</th><th>Titre</th></thead>
 	    {% verbatim %}
-	     {{#each book in controller}}
+	     {{#each book in books}}
 	       {{#with book}}
 	         <tr>{{#linkTo "book" this}}<td>{{cote}}</td><td>{{titre}}</td>{{/linkTo}}</tr>
 	       {{/with }}

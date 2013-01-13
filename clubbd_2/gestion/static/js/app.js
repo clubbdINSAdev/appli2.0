@@ -69,9 +69,14 @@ App.LoggedBooksRoute = Ember.Route.extend({
     model: function () {
 	return App.Book.find();
     },
+    setupController: function(controller, model) {
+	controller.set('test', '1,2,3');
+	controller.set('books', model);
+    },
     renderTemplate: function () {
-	this.render('books', {
-	    outlet: 'main'
+	this.render('loggedBooks', {
+	    into: 'application',
+	    outlet: 'main',
 	});
     }
 });

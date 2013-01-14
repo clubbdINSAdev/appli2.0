@@ -44,28 +44,98 @@ def restify(o, json=True):
         return restify_one(o, json)
 
 def user_exists(new_id):
-    user = None
     try:
         user = models.Utilisateur.objects.get(id=new_id)
+        return True
     except ObjectDoesNotExist:
-        pass
-    return user != None
+        return False
+
+def create_user(post):
+    try:
+        u = models.Utilisateur(id=post['id'],mail=post['mail'])
+        u.nom = post.get('nom')
+        u.prenom = post.get('prenom')
+        u.telephone = post.get('telephone')
+        u.adresse = post.get('adresse')
+        u.save()
+        s = bcrypt.gensalt(12)
+        pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(8))
+        print "TODO: mail this pwd to the user "+pwd
+        a = models.Authentification(
+            mail = post['mail'],
+            salt = s,
+            hash = bcrypt.hashpw(pwd, s),
+            api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
+            utilisateur = u)
+        a.save()
+        u.save()
+        return u
+    except KeyError as e:
+        return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+
+def create_book(post):
+    try:
+        if post['in_serie']:
+            try:
+                serie = get_serie(post['serie'])
+                editeur = get_editeur(post['editeur'])
+                categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
+                cote = generate_cote(categorie, post['numero'], serie.prefix)
+                date = date.fromtimestamp(post['date_entree'])
+                auteurs = get_auteurs(post['auteurs'])
+                volume = models.Volume(cote=cote, titre=post['title'], isbn=post['isbn'],
+                    description=post['description'], date_entree=date, editeur=editeur,
+                    serie=serie, numero=post['numero'], is_manga=post[is_manga], auteurs=auteurs,
+                    nouveaute=post['nouveaute'])
+                volume.save()
+                return volume
+            except ObjectDoesNotExist:
+                return HttpResponse("KO Wrong Cat_prefix?", content_type="application/json")
+        else:
+            try:
+                editeur = get_editeur(post['editeur'])
+                categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
+                cote = generate_cote(categorie, 1, post(['prefix']))
+                date = date.fromtimestamp(post['date_entree'])
+                auteurs = get_auteurs(post['auteurs'])
+                oneshot = models.OneShot(cote=cote, titre=post['title'], isbn=post['isbn'],
+                    description=post['description'], date_entree=date, editeur=editeur,
+                    prefix=post['prefix'], is_manga=post[is_manga], auteurs=auteurs,
+                    nouveaute=post['nouveaute'])
+                oneshot.save()
+                return oneshot
+            except ObjectDoesNotExist:
+                return HttpResponse("KO Wrong Cat_prefix?", content_type="application/json")
+    except KeyError as e:
+        return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
 
 def book_exists(new_id):
-    book = None
     try:
         book = models.Ouvrage.objects.get(id=new_id)
+        return True
     except ObjectDoesNotExist:
-        pass
-    return book not None
+        return False
 
 def book_out(book):
-    emprunt = None
     try:
         emprunt = models.Emprunt.objects.get(ouvrage=book)
+        return True
     except ObjectDoesNotExist:
-        pass
-    return emprunt not None
+        return False
+
+def is_volume(book_id):
+    try:
+        v = models.Volume.objects.get(pk=id)
+        return True
+    except ObjectDoesNotExist:
+        return False
+
+def is_oneshot(book_id):
+    try:
+        v = models.Oneshot.objects.get(pk=id)
+        return True
+    except ObjectDoesNotExist:
+        return False
 
 def generate_cote(categorie, numero, prefix):
     full_prefix = str(categorie.prefix).zfill(2) + prefix
@@ -86,6 +156,8 @@ def get_serie(jSerie):
             s = models.Serie.objects.get(pk=jSerie['id'])
     except KeyError as e:
         return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+    except ObjectDoesNotExist:
+        return HttpResponse("KO Wrong Serie id", content_type="application/json")
     return serie
 
 def get_editeur(jEditeur):
@@ -97,15 +169,19 @@ def get_editeur(jEditeur):
             editeur = models.Editeur.objects.get(pk=jEditeur['id'])
     except KeyError as e:
         return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+    except ObjectDoesNotExist as e:
+        return HttpResponse("KO Editeur Wrong id", content_type="application/json")
     return editeur
 
 def get_auteur(id,nom):
-    auteur = None
-    if id == None:
-        auteur = models.Auteur(nom=nom)
-    else:
-        auteur = models.Auteur.objects.get(pk=id)
-    return auteur
+    try:
+        if id == None:
+            auteur = models.Auteur(nom=nom)
+        else:
+            auteur = models.Auteur.objects.get(pk=id)
+        return None
+    except ObjectDoesNotExist:
+        return None
 
 def get_auteurs(jAuteurs):
     auteurs = []
@@ -114,6 +190,8 @@ def get_auteurs(jAuteurs):
             auteurs.add(get_auteur(jAuteur.get('id'),jAuteur['nom']))
     except KeyError as e:
         return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+    except ObjectDoesNotExist:
+        return HttpResponse("KO Wrong Auteur id", content_type="application/json")
     return auteurs
 
 
@@ -159,18 +237,15 @@ def require_api_key(func):
         api_key = request.GET.get('api_key')
         if login == None or api_key == None:
             return HttpResponse("KO No Auth Data", content_type="application/json")
-        a = None
         try:
             u = models.Utilisateur.objects.get(mail=login)
             a = models.Authentification.objects.get(utilisateur=u)
+            if a.api_key == api_key:
+                return func(request, *args, **kwargs)
+            else:
+                return HttpResponse("KO Wrong Key", content_type="application/json")
         except ObjectDoesNotExist:
-            pass
-        if a == None:
             return HttpResponse("KO Wrong Auth Data", content_type="application/json")
-        elif a.api_key == api_key:
-            return func(request, *args, **kwargs)
-        else:
-            return HttpResponse("KO Wrong Key", content_type="application/json")
     return wrapper
 
 # Create your views here
@@ -185,23 +260,7 @@ def get_users(request):
         if user_exists(post['id']):
             return HttpResponse("KO Exists", content_type="application/json")
         else:
-            u = models.Utilisateur(id=post['id'],mail=post['mail'])
-            u.nom = post.get('nom')
-            u.prenom = post.get('prenom')
-            u.telephone = post.get('telephone')
-            u.adresse = post.get('adresse')
-            u.save()
-            s = bcrypt.gensalt(12)
-            pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(8))
-            print "TODO: mail this pwd to the user "+pwd
-            a = models.Authentification(
-                mail = post['mail'],
-                salt = s,
-                hash = bcrypt.hashpw(pwd, s),
-                api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
-                utilisateur = u
-            )
-            a.save()
+            u = create_user(post)
             return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
 
 
@@ -209,11 +268,16 @@ def get_users(request):
 @require_api_key
 def get_user_by_id(request, id):
     if request.method == 'GET':
-        return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
+        try:
+            return HttpResponse(restify(models.Utilisateur.objects.get(pk=id)), content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO", content_type="application/json")
+
     elif request.method == 'PUT':
         post = json.loads(request.body)
-        u = models.Utilisateur.get(pk=post['id'])
-        if u not None:
+        u = None
+        try:
+            u = models.Utilisateur.get(pk=id)
             if post.get('mail') != None:
                 u.mail = post['mail']
             if post.get('nom') != None:
@@ -224,26 +288,17 @@ def get_user_by_id(request, id):
                 u.telephone = post['telephone']
             if post.get('adresse') != None:
                 u.adresse = post['adresse']
-        else:
-            u = models.Utilisateur(id=post['id'], mail=post['mail'], nom=post['nom'],
-                    prenom=post['prenom'])
-            u.telephone = post.get('telephone')
-            u.adresse = post.get('adresse')
-            s = bcrypt.gensalt(12)
-            pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
-            print "TODO: mail this pwd to the user"+pwd
-            a = models.Authentification(
-                salt = s,
-                hash = bcrypt.hashpw(pwd, s),
-                api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
-                utilisateur = u
-            )
-            a.save()
-        u.save()
-        return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
+            u.save()
+        except ObjectDoesNotExist:
+            u = create_user(post)
+        finally:
+            return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
     elif request.method == 'DELETE':
-        models.Utilisateur.objects.get(pk=id).delete()
-        return HttpResponse("Deleted", content_type="application/json")
+        try:
+            models.Utilisateur.objects.get(pk=id).delete()
+            return HttpResponse("Deleted", content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
 
 @require_http_methods(["GET"])
 @require_api_key
@@ -253,15 +308,11 @@ def search_users_by_name(request, name):
 
 @require_http_methods(["GET"])
 def get_salt(request):
-    a = None
     try:
         a = models.Authentification.objects.get(mail=request.GET.get('login'))
-    except ObjectDoesNotExist:
-        pass
-    if a != None:
         return HttpResponse('{"salt":"'+a.salt+'"}', content_type="application/json")
-    else:
-        return HttpResponse("KO", content_type="application/json")
+    except ObjectDoesNotExist:
+        return HttpResponse("KO Wrong login", content_type="application/json")
 
 @require_http_methods(["GET"])
 def authenticate(request):
@@ -270,19 +321,20 @@ def authenticate(request):
     if(login == None or hash == None):
         return HttpResponse("KO No Auth Data", content_type="application/json")
 
-    a = models.Authentification.objects.get(mail=login)
-
     @ensure_csrf_cookie
-    def response_ok(request):
-        u = models.Utilisateur.objects.get(id=a.utilisateur.id)
+    def response_ok(request, id):
+        u = models.Utilisateur.objects.get(id=id)
         u.api_key = a.api_key
         return HttpResponse(restify(u), content_type="application/json")
 
-    if a.hash == hash:
-        return response_ok(request)
-    else:
-        return HttpResponse("KO", content_type="application/json")
-
+    try:
+        a = models.Authentification.objects.get(mail=login)
+        if a.hash == hash:
+            return response_ok(request, a.utilisateur.id)
+        else:
+            return HttpResponse("KO", content_type="application/json")
+    except ObjectDoesNotExist:
+        return HttpResponse("KO Wrong Auth Data", content_type="application/json")
 
 @require_http_methods(["GET", "POST"])
 def get_ouvrages(request):
@@ -291,50 +343,98 @@ def get_ouvrages(request):
         return ouvrage_heavy_lifting("all", limit=request.GET.get('limit', None))
     elif request.method == 'POST':
         post = json.loads(request.body)
-        if bool(post.get('in_serie')):
-            try:
-                serie = get_serie(post['serie'])
-                editeur = get_editeur(post['editeur'])
-                categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
-                generate_cote(categorie, post['numero'], serie.prefix)
-                date = date.fromtimestamp(post['date_entree'])
-                auteurs = get_auteurs(post['auteurs'])
-                volume = models.Volume(cote=new_cote, titre=post['title'], isbn=post['isbn'],
-                        description=post['description'], date_entree=date, editeur=editeur,
-                        serie=serie, numero=post['numero'], is_manga=post[is_manga], auteurs=auteurs,
-                        nouveaute=post['nouveaute'])
-                volume.save()
-                return HttpResponse('{"id":"'+str(volume.id)+'"}', content_type="application/json")
-            except KeyError as e:
-                return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
-        else:
-            try:
-                editeur = get_editeur(post['editeur'])
-                categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
-                generate_cote(categorie, post['numero'], post(['prefix']))
-                date = date.fromtimestamp(post['date_entree'])
-                auteurs = get_auteurs(post['auteurs'])
-                oneshot = models.OneShot(cote=new_cote, titre=post['title'], isbn=post['isbn'],
-                        description=post['description'], date_entree=date, editeur=editeur,
-                        prefix=post['prefix'], is_manga=post[is_manga], auteurs=auteurs,
-                        nouveaute=post['nouveaute'])
-                oneshot.save()
-                return HttpResponse('{"id":"'+str(oneshot.id)+'"}', content_type="application/json")
-            except KeyError as e:
-                return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+        ouvrage = create_book(post)
+        return HttpResponse('{"id":"'+str(ouvrage.cote)+'"}', content_type="application/json")
 
 @require_http_methods(["GET", "PUT", "DELETE"])
 def get_ouvrage_by_id(request, id):
-    try:
-        el = models.Volume.objects.get(pk=id)
-        el.__dict__['in_serie'] = True
-    except ObjectDoesNotExist:
-        el = models.Volume.objects.get(pk=id)
-        el.__dict__['in_serie'] = False
+    if request.method == 'GET':
+        el = None
+        if is_volume(id):
+            el = models.Volume.objects.get(pk=id)
+            el.__dict__['in_serie'] = True
+        elif is_oneshot(id):
+            el = models.Oneshot.objects.get(pk=id)
+            el.__dict__['in_serie'] = False
+        else:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
 
-    del el.__dict__['ouvrage_ptr_id']
+        del el.__dict__['ouvrage_ptr_id']
+        return HttpResponse(restify(el), content_type="application/json")
 
-    return HttpResponse(restify(el), content_type="application/json")
+    elif request.method == 'PUT':
+        post = json.loads(request.body)
+        try:
+            if post['in_serie']:
+                volume = models.Volume.objects.get(pk=id)
+                if post.get('serie') != None:
+                    volume.serie = get_serie(post['serie'])
+                if post.get('editeur') != None:
+                    volule.editeur = get_editeur(post['editeur'])
+                if post.get('cat_prefix') != None:
+                    try:
+                        volume.categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
+                    except ObjectDoesNotExist:
+                        return HttpResponse("KO Wrong cat_prefix", content_type="application/json")
+                if post.get('numero') != None:
+                    volume.numero = post['numero']
+                if post.get('date_entree') != None:
+                    volume.date_entree = date.fromtimestamp(post['date_entree'])
+                if post.get('auteurs') != None:
+                    volume.auteurs = get_auteurs(post['auteurs'])
+                if post.get('title') != None:
+                    volume.titre = post['title']
+                if post.get('isbn') != None:
+                    volume.isbn = post['isbn']
+                if post.get('description') != None:
+                    volume.description = post['description']
+                if post.get('is_manga') != None:
+                    volume.is_manga = post['is_manga']
+                if post.get('nouveaute') != None:
+                    volume.nouveaute = post['nouveaute']
+                cote = generate_cote(volume.categorie, volume.numero, volume.serie.prefix)
+
+                volume.save()
+                return HttpResponse('{"id":"'+str(volume.cote)+'"}', content_type="application/json")
+            else:
+                oneshot = models.Oneshot.objects.get(pk=id)
+                if post.get('editeur') != None:
+                    oneshot.editeur = get_editeur(post['editeur'])
+                if post.get('cat_prefix') != None:
+                    try:
+                        oneshot.categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
+                    except ObjectDoesNotExist:
+                        return HttpResponse("KO Wrong cat_prefix", content_type="application/json")
+                if post.get('prefix') != None:
+                    oneshot.prefix = post['prefix']
+                if post.get('date_entree') != None:
+                    oneshot.date_entree = date.fromtimestamp(post['date_entree'])
+                if post.get('auteurs') != None:
+                    oneshot.auteurs = get_auteurs(post['auteurs'])
+                if post.get('title') != None:
+                    oneshot.titre = post['title']
+                if post.get('isbn') != None:
+                    oneshot.isbn = post['isbn']
+                if post.get('description') != None:
+                    oneshot.description = post['description']
+                if post.get('is_manga') != None:
+                    oneshot.is_manga = post['is_manga']
+                if post.get('nouveaute') != None:
+                    oneshot.nouveaute = post['nouveaute']
+                cote = generate_cote(oneshot.categorie, 1, oneshot.prefix)
+                oneshot.save()
+                return HttpResponse('{"id":"'+str(oneshot.cote)+'"}', content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+        except ObjectDoesNotExist:
+            ouvrage = create_book(post)
+            return HttpResponse('{"id":"'+str(ouvrage.cote)+'"}', content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            models.Ouvrage.objects.get(pk=id).delete()
+            return HttpResponse("Deleted", content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
 
 @require_http_methods(['GET'])
 def search_ouvrage_by_title(request, title):

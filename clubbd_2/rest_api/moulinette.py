@@ -41,7 +41,7 @@ def mk_ouvrages(cursor, new_series, new_editeurs, new_auteurs):
                 editeur=e,
                 is_manga=(row['kind'] == 'm'),
                 serie=s,
-                empruntable=True,
+                nouveaute=False,
                 numero=row['serial_nb']
             )
             v.save()
@@ -72,7 +72,8 @@ def mk_ouvrages(cursor, new_series, new_editeurs, new_auteurs):
                     date_entree=row['buy_date'],
                     editeur=e,
                     is_manga=(row['kind'] == 'm'),
-                    empruntable=True,
+                    nouveaute=False,
+                    prefix=row['reference'][2:5],
                     categorie=c
                 )
                 o.save()
@@ -277,7 +278,6 @@ def mk_utilisateurs(cursor):
         u.save()
         s = bcrypt.gensalt(12)
         a = rest_api.models.Authentification(
-            mail = u.mail,
             salt = s,
             hash = bcrypt.hashpw("aubry", s),
             api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
@@ -318,6 +318,8 @@ def mk_all():
     cursor2= connections['old'].cursor()
     mk_ouvrages(cursor, new_series, new_editeurs, new_auteurs)
     mk_utilisateurs(cursor)
-    # ...
+
+if __name__ == '__main__':
+    mk_all()
 
 

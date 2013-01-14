@@ -151,7 +151,7 @@ def get_serie(jSerie):
     try:
         if jSerie.get('id') == None:
             c = models.Categorie.objects.get(pk=post['cat_id'])
-            serie = models.Serie(nom=jSerie['nom'], prefix=jSerie'prefix'], categorie=c)
+            serie = models.Serie(nom=jSerie['nom'], prefix=jSerie['prefix'], categorie=c)
         else:
             s = models.Serie.objects.get(pk=jSerie['id'])
     except KeyError as e:
@@ -309,7 +309,8 @@ def search_users_by_name(request, name):
 @require_http_methods(["GET"])
 def get_salt(request):
     try:
-        a = models.Authentification.objects.get(mail=request.GET.get('login'))
+        u = models.Utilisateur.objects.get(mail=request.GET.get('login'))
+        a = models.Authentification.objects.get(utilisateur=u)
         return HttpResponse('{"salt":"'+a.salt+'"}', content_type="application/json")
     except ObjectDoesNotExist:
         return HttpResponse("KO Wrong login", content_type="application/json")
@@ -328,7 +329,8 @@ def authenticate(request):
         return HttpResponse(restify(u), content_type="application/json")
 
     try:
-        a = models.Authentification.objects.get(mail=login)
+        u = models.Utilisateur.objects.get(mail=login)
+        a = models.Authentification.objects.get(utilisateur=u)
         if a.hash == hash:
             return response_ok(request, a.utilisateur.id)
         else:

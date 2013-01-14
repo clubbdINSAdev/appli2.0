@@ -1,5 +1,3 @@
-var __user = {};
-
 var App = Ember.Application.create({
     alert: function (message, type, time) {
 	var message = message || '',
@@ -24,6 +22,10 @@ var App = Ember.Application.create({
     __self: this,
     HomeView: Em.View.extend({
 	templateName: 'home'
+    }),
+    LoggedController: Em.Controller.extend(),
+    LoggedView: Em.View.extend({
+	templateName: 'loggedHome'
     }),
     HomeController: Em.Controller.extend(),
     BookController: Em.ObjectController.extend(),
@@ -56,18 +58,34 @@ var App = Ember.Application.create({
 	    },
 	    index: Ember.Route.extend({
 		route: '/',
+		enter: function () {
+		    var cur = sessionStorage.getItem('current');
+		    if (cur) {
+			cur = JSON.parse(cur);
+			console.log('Already logged in. (as '+cur.lastName+')')
+			App.Connected.updateCurrent(cur);
+			App.router.transitionTo('logged.index');
+		    }
+		},
 		connectOutlets: function(router) {
 		    router.get('applicationController').connectOutlet('main', 'home');
 		    router.get('applicationController').connectOutlet('login', 'loginForm');
 		}
 	    }),
 	    logged: Em.Route.extend({
+		route: '/logged',
+		goToUsers: Ember.Route.transitionTo('users.index'),
+		goToBooks: Ember.Route.transitionTo('books.index'),
 		enter: function() {
 		    App.alert('You are logged in !', 'success');
 		},
 		index: Ember.Route.extend({
 		    route: '/',
+		    enter: function () {
+			console.log('Know in logged in zone.');
+		    },
 		    connectOutlets: function(router) {
+			router.get('applicationController').connectOutlet('main', 'logged');
 			router.get('applicationController').connectOutlet('login', 'loginTrue', App.Connected.current());
 		    }
 		}),
@@ -175,10 +193,10 @@ App.LoginFormView = Em.View.extend({
 
 	login(form.children('input[type=text]').val(), form.children('input[type=password]').val(), function (json) {
 	    console.log("got key");
-	    __user = json;
 	    json.firstName = json.prenom;
 	    json.lastName = json.nom;
 	    App.Connected.updateCurrent(json);
+	    sessionStorage.setItem('current', JSON.stringify(App.Connected.current()));
 	    
 	    if (json.api_key) {
 		console.log('goto root.logged.index')
@@ -242,11 +260,14 @@ App.User = Ember.Object.extend();
 App.User.reopenClass({
     __listOfUsers: Em.A(),
     all: function () {
-	var allUsers = this.__listOfUsers;
+	console.log('get all users');
+	var allUsers = this.__listOfUsers,
+	user = App.Connected.current();
 	
-	if (__user.api_key && this.__listOfUsers.length == 0) {
-	    var url = '/rest/v1/users/all?login='+__user.mail+
-		'&api_key='+__user.api_key;
+	if (user.get('api_key') && this.__listOfUsers.length == 0) {
+	    var url = '/rest/v1/users/all?login='+user.get('mail')+
+		'&api_key='+user.get('api_key');
+	    console.log(url);
 	    jQuery.getJSON(url, function(json) {
 		console.log(json);
 		allUsers.clear();

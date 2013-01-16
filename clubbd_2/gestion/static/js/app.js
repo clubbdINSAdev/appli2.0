@@ -48,7 +48,7 @@ App.IndexRoute = Ember.Route.extend({
     }
 });
 
-App.LoggedRoute = Em.Route.extend({
+App.LoggedIndexRoute = Em.Route.extend({
     enter: function() {
 	App.alert('You are logged in !', 'success');
     },
@@ -81,7 +81,7 @@ App.LoggedBooksRoute = Ember.Route.extend({
     }
 });
 
-App.BookRoute = Ember.Route.extend({
+App.LoggedBookRoute = Ember.Route.extend({
     enter: function () {
 	console.log("Entered book state.");
     },
@@ -95,7 +95,7 @@ App.BookRoute = Ember.Route.extend({
     }
 });
 
-App.UsersRoute = Ember.Route.extend({
+App.LoggedUsersRoute = Ember.Route.extend({
     addUser: function () {
 	console.log("Add user");
 	$('#user_modal').modal({show: false});
@@ -112,12 +112,12 @@ App.UsersRoute = Ember.Route.extend({
 });	
 
 
-App.UserRoute = Ember.Route.extend({
+App.LoggedUserRoute = Ember.Route.extend({
     enter: function () {
 	console.log("user");
 	$('#user_modal').modal();
 	$('#user_modal').on('hidden', function () {
-	    App.router.transitionTo('users.index');
+	    App.router.transitionTo('logged.users');
 	});
     },
     model: function(params) {
@@ -130,16 +130,15 @@ App.UserRoute = Ember.Route.extend({
     }
 })
 
-App.Router.map(function(match) {
-    match('/logged').to('logged', function(match) {
-	match('/books').to('books', function(match) {
-	    match('/:id').to('book');
-	});
-	match('/users').to('users', function(match) {
-	    match('/:id').to('user');
-	});
+App.Router.map(function() {
+    this.resource('logged', function() {
+	this.route('books');
+	this.route('book', {path: '/books/:book_id'});
+
+	this.route('users');
+	this.route('user', {path: '/users/:user_id'});
     });
-})
+});
 
 App.LoginTrueController = Em.Controller.extend(),
 App.LoginTrueView = Em.View.extend({
@@ -177,7 +176,7 @@ App.LoginFormView = Em.View.extend({
 		  
 		  if (json.api_key) {
 		      console.log('logged')
-		      App.Router.router.transitionTo('logged');
+		      App.Router.router.transitionTo('logged.index');
 		  }
 		  // TODO: Get cookie
 	      }, function (err) {
@@ -233,7 +232,7 @@ App.Book = DS.Model.extend({
 
 App.Book.reopenClass({
     url: '/books',
-    args: '?limit=50'
+    args: '?limit=20'
 });
 
 
@@ -285,6 +284,9 @@ App.User = DS.Model.extend({
     }
 });*/
 
+// DS.Adapter.configure('primaryKey', {
+//     book: 'cote'
+// });
 
 App.adapter = DS.Adapter.create({
     url: '/rest/v',
@@ -310,6 +312,7 @@ App.adapter = DS.Adapter.create({
 
 	console.log(url);
 	jQuery.getJSON(url, function(data) {
+	    
 	    self.didFindAll(store, type, {books: data});
 	});
     }

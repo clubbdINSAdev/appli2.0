@@ -86,10 +86,11 @@ App.LoggedBookRoute = Ember.Route.extend({
 	console.log("Entered book state.");
     },
     model: function(params){
-	return App.Book.find(params.id);
+	return App.Book.find(params.book_id);
     },
     renderTemplate: function () {
 	this.render('book', {
+	    into: 'application',
 	    outlet: 'main'
 	});
     }
@@ -284,9 +285,9 @@ App.User = DS.Model.extend({
     }
 });*/
 
-// DS.Adapter.configure('primaryKey', {
-//     book: 'cote'
-// });
+DS.Adapter.configure('primaryKey', {
+    book: 'cote'
+});
 
 App.adapter = DS.Adapter.create({
     url: '/rest/v',

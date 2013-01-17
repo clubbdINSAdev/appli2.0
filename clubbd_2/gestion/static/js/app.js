@@ -285,9 +285,9 @@ App.User = DS.Model.extend({
     }
 });*/
 
-DS.Adapter.configure('primaryKey', {
-    book: 'cote'
-});
+// DS.Adapter.configure('primaryKey', {
+//     book: 'cote'
+// });
 
 App.adapter = DS.Adapter.create({
     url: '/rest/v',

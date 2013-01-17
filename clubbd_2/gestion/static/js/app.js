@@ -103,7 +103,7 @@ App.LoggedUsersRoute = Ember.Route.extend({
 	var new_user = $('#new_user');
     },
     model: function () {
-	return  App.User.all();
+	return  App.User.find();
     },
     renderTemplate: function () {
 	this.render('users', {
@@ -232,26 +232,13 @@ App.Book = DS.Model.extend({
 });
 
 App.Book.reopenClass({
-    url: '/books',
-    args: '?limit=20'
+    url: function () {
+	return '/books';
+    },
+    args: function () {
+	return '?limit=20';
+    }
 });
-
-
-// App.Book_old.reopenClass({
-//     __listOfBooks: Em.A(),
-//     all: function () {
-// 	var allBooks = this.__listOfBooks;
-// 	jQuery.getJSON('/rest/v1/books/all?limit=50', function(json) {
-// 	    console.log("Got json, " + json.length + " books");
-// 	    allBooks.clear();
-// 	    allBooks.pushObjects(json);
-// 	});
-// 	return this.__listOfBooks;
-//     },
-//     find: function (id) {
-// 	return this.__listOfBooks.findProperty('cote', id);
-//     }
-// });
 
 App.User = DS.Model.extend({
     adresse: DS.attr('string'),
@@ -261,29 +248,22 @@ App.User = DS.Model.extend({
     telephone: DS.attr('string')
 });
 
-/*App.User_old.reopenClass({
-    __listOfUsers: Em.A(),
-    all: function () {
-	console.log('get all users');
-	var allUsers = this.__listOfUsers,
-	user = App.Connected.current();
-	
-	if (user.get('api_key') && this.__listOfUsers.length == 0) {
-	    var url = '/rest/v1/users/all?login='+user.get('mail')+
-		'&api_key='+user.get('api_key');
-	    console.log(url);
-	    jQuery.getJSON(url, function(json) {
-		console.log(json);
-		allUsers.clear();
-		allUsers.pushObjects(json);
-	    });
-	}
-	return this.__listOfUsers;
+App.User.reopenClass({
+    url: function () {
+	    return '/users';
     },
-    find: function (id) {
-	return this.__listOfUsers.findProperty('id', id);
+    args: function () {
+	var user = App.Connected.current(),
+	ret = '';
+	
+	if (user.get('api_key')) {
+	    ret =  '?login='+user.get('mail')+
+		'&api_key='+user.get('api_key');
+	}
+
+	return ret;
     }
-});*/
+});
 
 // DS.Adapter.configure('primaryKey', {
 //     book: 'cote'
@@ -308,13 +288,16 @@ App.adapter = DS.Adapter.create({
     },
     findAll: function (store, type) {
 	console.log('find all');
-	var url = this.url + this.version + type.url + '/all'+ type.args,
+	var url = this.url + this.version + type.url() + '/all'+ type.args(),
 	self = this;
 
 	console.log(url);
 	jQuery.getJSON(url, function(data) {
+	    console.log(type.name);
+	    var payload = {}
 	    
-	    self.didFindAll(store, type, {books: data});
+	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;
+	    self.didFindAll(store, type, payload);
 	});
     }
     // Write

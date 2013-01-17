@@ -11,7 +11,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 
 def json_date(obj):
     if type(obj) == datetime.date:
-        return obj.strftime("%d/%m/%Y")
+        return obj.isoformat()
     else:
         raise TypeError
 
@@ -81,7 +81,7 @@ def create_book(post):
                 editeur = get_editeur(post['editeur'])
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, post['numero'], serie.prefix)
-                date = date.fromtimestamp(post['date_entree'])
+                date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 auteurs = get_auteurs(post['auteurs'])
                 volume = models.Volume(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
@@ -96,7 +96,7 @@ def create_book(post):
                 editeur = get_editeur(post['editeur'])
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, 1, post(['prefix']))
-                date = date.fromtimestamp(post['date_entree'])
+                date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 auteurs = get_auteurs(post['auteurs'])
                 oneshot = models.OneShot(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
@@ -381,7 +381,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('numero') != None:
                     volume.numero = post['numero']
                 if post.get('date_entree') != None:
-                    volume.date_entree = date.fromtimestamp(post['date_entree'])
+                    volume.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') != None:
                     volume.auteurs = get_auteurs(post['auteurs'])
                 if post.get('title') != None:
@@ -410,7 +410,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('prefix') != None:
                     oneshot.prefix = post['prefix']
                 if post.get('date_entree') != None:
-                    oneshot.date_entree = date.fromtimestamp(post['date_entree'])
+                    oneshot.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') != None:
                     oneshot.auteurs = get_auteurs(post['auteurs'])
                 if post.get('title') != None:
@@ -474,8 +474,8 @@ def get_categories(request):
 @require_http_methods(['GET'])
 def get_categories_by_prefix(request, prefix):
     return HttpResponse(restify(models.Categorie.objects.get(pk=prefix)), content_type="application/json")
-@require_http_methods(['GET'])
 
+@require_http_methods(['GET'])
 def search_categories_by_name(request, name):
     categories = models.Categorie.objects.filter(nom__icontains=name)
 
@@ -499,3 +499,50 @@ def search_series_by_categorie(request, categorie_id):
 
     return HttpResponse(restify(series), content_type="application/json")
 
+@require_http_methods(['GET', 'POST'])
+def get_emprunts(request):
+    if request.method == 'GET':
+        emprunts = models.Emprunt.objects.all()
+        sorted = {}
+        for emprunt in emprunts:
+            try:
+                sorted[emprunt.utilisateur.id].append((emprunt.ouvrage.cote, emprunt.date))
+            except KeyError:
+                sorted[emprunt.utilisateur.id] = [(emprunt.ouvrage.cote, emprunt.date)]
+
+        return HttpResponse(str(sorted), content_type="application/json")
+    elif request.method == 'POST':
+        post = json.loads(request.body)
+        try:
+            user = models.Utilisateur.get(pk=post['user_id'])
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+
+            try:
+                books = []
+                for ref in post['books']:
+                    book = models.Ouvrage.get(pk=ref)
+                    books.append(book)
+            except KeyError as e:
+                return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+            except ObjectDoesNotExist:
+                return HttpResponse("KO Wrong Book ID", content_type="application/json")
+
+            for book in books:
+                e = models.Emprunt(utilisateur=user, ouvrage=book, date=date.today())
+                e.save()
+            return HttpResponse("OK Registerd", content_type="application/json")
+
+@require_http_methods(['DELETE'])
+def return_book(request):
+    post = json.loads(request.body)
+    try:
+        o = models.Ouvrage.objects.get(pk=post['cote'])
+        e = models.Emprunt.objects.get(ouvrage=o)
+        h = models.Historique(utilisateur=e.utilisateur, ouvrage=o, date_deb = e.date, 
+                              duree = (date.today() - e.date).days)
+        h.save()
+        e.delete()
+        return HttpResponse("Deleted and archived", content_type="application/json")
+    except ObjectDoesNotExist:
+        return HttpResponse("KO Wrong ID", content_type="application/json")

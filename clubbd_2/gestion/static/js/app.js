@@ -249,8 +249,13 @@ App.Book.reopenClass({
     url: function () {
 	return '/books';
     },
-    args: function () {
-	return '?limit=20';
+    args: function (conf) {
+	var ret = '?';
+	
+	if (conf.all) {
+	    ret += 'limit=20';
+	}	    
+	return ret;
     }
 });
 
@@ -287,12 +292,15 @@ App.adapter = DS.Adapter.create({
     url: '/rest/v',
     version: 1,
     find: function (store, type, id) {
-	var url = this.url + this.version + type.url() + '/' + id,
+	var url = this.url + this.version + type.url() + '/' + id + type.args(),
 	self = this;
 	
 	console.log(url);
 	jQuery.getJSON(url, function(data) {
-	    self.didFindRecord(store, type, data, id);
+	    var payload = {};
+
+	    payload[type.toString().split('.')[1].toLowerCase()] = data;
+	    self.didFindRecord(store, type, payload, id);
 	});
     },
     findMany: function (store, type, ids) {
@@ -303,14 +311,14 @@ App.adapter = DS.Adapter.create({
     },
     findAll: function (store, type) {
 	console.log('find all');
-	var url = this.url + this.version + type.url() + '/all'+ type.args(),
+	var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
 	self = this;
 
 	console.log(url);
 	jQuery.getJSON(url, function(data) {
 	    console.log(type.name);
-	    var payload = {}
-	    
+	    var payload = {};
+
 	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;
 	    self.didFindAll(store, type, payload);
 	});

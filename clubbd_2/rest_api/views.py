@@ -125,14 +125,14 @@ def book_out(book):
 
 def is_volume(book_id):
     try:
-        v = models.Volume.objects.get(pk=id)
+        v = models.Volume.objects.get(pk=book_id)
         return True
     except ObjectDoesNotExist:
         return False
 
 def is_oneshot(book_id):
     try:
-        v = models.Oneshot.objects.get(pk=id)
+        v = models.Oneshot.objects.get(pk=book_id)
         return True
     except ObjectDoesNotExist:
         return False

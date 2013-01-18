@@ -232,6 +232,7 @@ App.Connected = Em.Object.create({
 });
 
 App.Book = DS.Model.extend({
+    primaryKey: 'cote',
     is_manga: DS.attr('string'),
     isbn: DS.attr('string'), 
     description: DS.attr('string'),
@@ -322,7 +323,7 @@ App.adapter = DS.Adapter.create({
 	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;
 	    self.didFindAll(store, type, payload);
 	});
-    }
+    },
     // Write
 });
 

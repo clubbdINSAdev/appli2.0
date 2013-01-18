@@ -34,9 +34,6 @@ App.IndexRoute = Ember.Route.extend({
     redirect: function () {
 	var cur = sessionStorage.getItem('current');
 	if (cur) {
-	    cur = JSON.parse(cur);
-	    console.log('Already logged in. (as '+cur.lastName+')')
-	    App.Connected.updateCurrent(cur);
 	    this.transitionTo('logged');
 	}
     },
@@ -290,9 +287,10 @@ App.adapter = DS.Adapter.create({
     url: '/rest/v',
     version: 1,
     find: function (store, type, id) {
-	var url = this.url + this.version + type.url + '/' + id,
+	var url = this.url + this.version + type.url() + '/' + id,
 	self = this;
 	
+	console.log(url);
 	jQuery.getJSON(url, function(data) {
 	    self.didFindRecord(store, type, data, id);
 	});
@@ -324,5 +322,14 @@ App.Store = DS.Store.extend({
     revision: 11,
     adapter: App.adapter
 });
+
+App.ready = function () {
+    var cur = sessionStorage.getItem('current');
+    if (cur) {    
+	cur = JSON.parse(cur);
+	console.log('Already logged in. (as '+cur.lastName+')')
+	App.Connected.updateCurrent(cur);
+    }
+}
 
 App.initialize();

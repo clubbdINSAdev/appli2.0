@@ -24,11 +24,13 @@ var App = Ember.Application.create({
 	    alert.alert('close');
 	}, time);
     },
-    __self: this,
-    enableLogging: true,
+    __self: this
 });
 
 App.IndexRoute = Ember.Route.extend({
+    enter: function () {
+	console.log('Entered index route.');
+    },
     redirect: function () {
 	var cur = sessionStorage.getItem('current');
 	if (cur) {
@@ -48,6 +50,20 @@ App.IndexRoute = Ember.Route.extend({
     }
 });
 
+App.LoggedRoute = Em.Route.extend({
+    enter: function () {
+	console.log('Entered logged route.');
+    },
+    redirect: function () {
+	var cur = sessionStorage.getItem('current');
+	if (!cur) {
+	    console.log('Not logged in redirecting ...');
+	    App.alert('You\'re not logged in ! Log in please.');
+	    this.transitionTo('index');
+	}
+    }
+});
+
 App.LoggedIndexRoute = Em.Route.extend({
     enter: function() {
 	App.alert('You are logged in !', 'success');
@@ -64,7 +80,7 @@ App.LoggedIndexRoute = Em.Route.extend({
 
 App.LoggedBooksRoute = Ember.Route.extend({
     enter: function () {
-	console.log("Entered books state.");
+	console.log("Entered logge.books route.");
     },
     model: function () {
 	return App.Book.find();
@@ -97,6 +113,9 @@ App.LoggedBookRoute = Ember.Route.extend({
 });
 
 App.LoggedUsersRoute = Ember.Route.extend({
+    enter: function () {
+	console.log("Entered logged.users route.");
+    },
     addUser: function () {
 	console.log("Add user");
 	$('#user_modal').modal({show: false});

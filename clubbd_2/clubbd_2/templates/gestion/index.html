@@ -80,12 +80,11 @@
 	<!-- User -->
 	<script type="text/x-handlebars" data-template-name="logged/user">
 	  {% verbatim %}
-	  {{#with user}}
-	  <div class="modal-header">
+	  <div>
 	    Update
 	  </div>
-	  <div class="modal-body">
-	    <form id="user_form_modal" >
+	  <div>
+	    <form>
 	      <fieldset>
 		<label>Nom:</label><input type="text" name="lastname" {{bindAttr value="nom"}}>
 		<label>Prenom:</label><input type="text" name="firstname" {{bindAttr value="prenom"}}>
@@ -94,11 +93,9 @@
 	      </fieldset>
 	    </form>
 	  </div>
-	  <div class="modal-footer">
-	    <button data-dismiss="modal" class="btn">Close</button>
+	  <div>
 	    <button {{action updateUser this}} class="btn btn-primary">Update user</button>
 	  </div>
-	  {{/with}}
 	  {% endverbatim %}
 	</script>
 

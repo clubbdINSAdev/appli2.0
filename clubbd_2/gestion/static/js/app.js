@@ -117,18 +117,14 @@ App.LoggedUsersRoute = Ember.Route.extend({
 App.LoggedUserRoute = Ember.Route.extend({
     enter: function () {
 	console.log("user");
-	$('#user_modal').modal();
-	$('#user_modal').on('hidden', function () {
-	    this.transitionTo('logged.users');
-	});
     },
     model: function(params) {
 	return App.User.find(params.user_id);
     },
     renderTemplate: function () {
 	this.render('logged/user', {
-	    into: 'users',
-	    outlet: 'user'
+	    into: 'application',
+	    outlet: 'main'
 	});
     } 
 })

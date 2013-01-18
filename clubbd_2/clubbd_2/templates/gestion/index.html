@@ -80,10 +80,9 @@
 	<!-- User -->
 	<script type="text/x-handlebars" data-template-name="logged/user">
 	  {% verbatim %}
-	  <div>
-	    Update
-	  </div>
-	  <div>
+	  <div class="row-fluid">
+	  <div class="well span6 offset3">
+	    <h1>Update</h1>
 	    <form>
 	      <fieldset>
 		<label>Nom:</label><input type="text" name="lastname" {{bindAttr value="nom"}}>
@@ -92,9 +91,8 @@
 		<label>Adresse:</label><input type="text" name="adresse" {{bindAttr value="adresse"}} >
 	      </fieldset>
 	    </form>
-	  </div>
-	  <div>
-	    <button {{action updateUser this}} class="btn btn-primary">Update user</button>
+	    <hr>
+	    <button {{action updateUser this}} class="btn btn-primary pull-right">Update user</button>
 	  </div>
 	  {% endverbatim %}
 	</script>

@@ -53,10 +53,10 @@ App.LoggedIndexRoute = Em.Route.extend({
 	App.alert('You are logged in !', 'success');
     },
     renderTemplate: function () {
-	this.render('logged', {
+	this.render('loggedHome', {
 	    outlet: 'main'
 	});
-	this.render('loginForm', {
+	this.render('loginTrue', {
 	    outlet: 'login'
 	});
     }
@@ -74,7 +74,7 @@ App.LoggedBooksRoute = Ember.Route.extend({
 	controller.set('books', model);
     },
     renderTemplate: function () {
-	this.render('loggedBooks', {
+	this.render('logged/books', {
 	    into: 'application',
 	    outlet: 'main',
 	});
@@ -89,7 +89,7 @@ App.LoggedBookRoute = Ember.Route.extend({
 	return App.Book.find(params.book_id);
     },
     renderTemplate: function () {
-	this.render('book', {
+	this.render('logged/book', {
 	    into: 'application',
 	    outlet: 'main'
 	});
@@ -106,7 +106,8 @@ App.LoggedUsersRoute = Ember.Route.extend({
 	return  App.User.find();
     },
     renderTemplate: function () {
-	this.render('users', {
+	this.render('logged/users', {
+	    into: 'application',
 	    outlet: 'main'
 	});
     }
@@ -118,17 +119,18 @@ App.LoggedUserRoute = Ember.Route.extend({
 	console.log("user");
 	$('#user_modal').modal();
 	$('#user_modal').on('hidden', function () {
-	    App.router.transitionTo('logged.users');
+	    this.transitionTo('logged.users');
 	});
     },
     model: function(params) {
-	return App.User.find(params.id);
+	return App.User.find(params.user_id);
     },
     renderTemplate: function () {
-	this.render('user', {
-	    outlet: 'main'
+	this.render('logged/user', {
+	    into: 'users',
+	    outlet: 'user'
 	});
-    }
+    } 
 })
 
 App.Router.map(function() {

@@ -507,16 +507,31 @@ def search_ouvrage_all(request, query):
 
     return ouvrage_heavy_lifting("filter", d)
 
-@require_http_methods(['GET'])
+@require_http_methods(['GET', 'POST'])
 def get_editors(request):
-    editors = models.Editeur.objects.all() 
+    if request.method == 'GET':
+        editors = models.Editeur.objects.all() 
+        return HttpResponse(restify(editors), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            editor = models.Editeur(nom=post['name'])
+            editor.save()
+            return HttpResponse('{"id":"'+ editor.id +'"}', content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
 
-    return HttpResponse(restify(editors), content_type="application/json")
-
+@require_http_methods(['GET', 'DELETE'])
 def search_editors_by_name(request, name):
-    editors = models.Editeur.objects.filter(nom__icontains=name)
-
-    return HttpResponse(restify(editors), content_type="application/json")
+    if request.method == 'GET':
+        editors = models.Editeur.objects.filter(nom__icontains=name)
+        return HttpResponse(restify(editors), content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            editeur = models.Editeur.objects.get(nom=name).delete()
+            return HttpResponse("Deleted", content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO No editor" + name, content_type="application/json")
 
 @require_http_methods(['GET'])
 def get_categories(request):

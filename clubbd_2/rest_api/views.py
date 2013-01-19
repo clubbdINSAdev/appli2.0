@@ -508,6 +508,7 @@ def search_ouvrage_all(request, query):
     return ouvrage_heavy_lifting("filter", d)
 
 @require_http_methods(['GET', 'POST'])
+@require_actif
 def get_editors(request):
     if request.method == 'GET':
         editors = models.Editeur.objects.all() 
@@ -522,6 +523,7 @@ def get_editors(request):
             return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
 
 @require_http_methods(['GET', 'DELETE'])
+@require_actif
 def search_editors_by_name(request, name):
     if request.method == 'GET':
         editors = models.Editeur.objects.filter(nom__icontains=name)
@@ -533,15 +535,42 @@ def search_editors_by_name(request, name):
         except ObjectDoesNotExist:
             return HttpResponse("KO No editor" + name, content_type="application/json")
 
-@require_http_methods(['GET'])
+@require_http_methods(['GET', 'POST'])
+@require_actif
 def get_categories(request):
-    categories = models.Categorie.objects.all() 
+    if request.method == 'GET':
+        categories = models.Categorie.objects.all() 
+        return HttpResponse(restify(categories), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            cat = models.Categorie(prefix=post['prefix'], nom=post['name'])
+            cat.save()
+            return HttpResponse('{"id":"'+ cat.prefix +'"}', content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
 
-    return HttpResponse(restify(categories), content_type="application/json")
-
-@require_http_methods(['GET'])
+@require_http_methods(['GET', 'PUT', 'DELETE'])
 def get_categories_by_prefix(request, prefix):
-    return HttpResponse(restify(models.Categorie.objects.get(pk=prefix)), content_type="application/json")
+    if request.method == 'GET':
+        return HttpResponse(restify(models.Categorie.objects.get(pk=prefix)), content_type="application/json")
+    elif request.method == 'PUT':
+        post = json.loads(request.body)
+        try:
+            cat = models.Categorie.get(pk=prefix)
+            if post.get('prefix') is not None:
+                cat.prefix = post['prefix']
+            if post.get('name') is not None:
+                cat.prefix = post['name']
+            cat.save()
+        except ObjectDoesNotExist:
+            try:
+                post = json.loads(request.body)
+                cat = models.Categorie(prefix=post['prefix'], nom=post['name'])
+                cat.save()
+                return HttpResponse('{"id":"'+ cat.prefix +'"}', content_type="application/json")
+            except KeyError as e:
+                return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
 
 @require_http_methods(['GET'])
 def search_categories_by_name(request, name):

@@ -571,6 +571,12 @@ def get_categories_by_prefix(request, prefix):
                 return HttpResponse('{"id":"'+ cat.prefix +'"}', content_type="application/json")
             except KeyError as e:
                 return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+    elif request.method == 'DELETE:
+        try:
+            cat = models.Categorie.get(pk=prefix).delete()
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+
 
 @require_http_methods(['GET'])
 def search_categories_by_name(request, name):

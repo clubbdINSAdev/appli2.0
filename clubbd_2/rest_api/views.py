@@ -586,7 +586,7 @@ def get_categories_by_prefix(request, prefix):
     elif request.method == 'PUT':
         post = json.loads(request.body)
         try:
-            cat = models.Categorie.get(pk=prefix)
+            cat = models.Categorie.objects.get(pk=prefix)
             if post.get('prefix') is not None:
                 cat.prefix = post['prefix']
             if post.get('name') is not None:
@@ -602,7 +602,7 @@ def get_categories_by_prefix(request, prefix):
                 return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
     elif request.method == 'DELETE':
         try:
-            cat = models.Categorie.get(pk=prefix).delete()
+            cat = models.Categorie.objects.get(pk=prefix).delete()
         except ObjectDoesNotExist:
             return HttpResponse("KO Wrong ID", content_type="application/json")
 
@@ -613,11 +613,50 @@ def search_categories_by_name(request, name):
 
     return HttpResponse(restify(categories), content_type="application/json")
 
-@require_http_methods(['GET'])
+@require_http_methods(['GET', 'POST'])
+@require_actif
 def get_series(request):
-    series = models.Serie.objects.all() 
+    if request.method == 'GET':
+        series = models.Serie.objects.all()
+        return HttpResponse(restify(series), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            cat = models.Categorie.objects.get(prefix=post['cat_id'])
+            serie = models.Serie(nom=post['name'], prefix=['prefix'], categorie=cat)
+            serie.save()
+            return HttpResponse('{"id":"'+ serie.id +'"}', content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong cat ID", content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
 
-    return HttpResponse(restify(series), content_type="application/json")
+@require_http_methods(['GET', 'PUT', 'DELETE'])
+@require_actif
+def get_serie_by_id(request, id):
+    if request.method == 'GET':
+        return HttpResponse(restify(models.Serie.objects.get(pk=id)), content_type="application/json")
+    elif request.method == 'PUT':
+        post = json.loads(request.body)
+        try:
+            serie = models.Serie.objects.get(pk=id)
+            if post.get('name') is not None:
+                serie.nom=post['name']
+            if post.get('prefix') is not None:
+                serie.prefix=post['prefix']
+            if post.get('cat_id') is not None:
+                try:
+                    cat = models.Categorie.objects.get(pk=post['cat_id'])
+                    serie.categorie=cat
+                except ObjectDoesNotExist:
+                    return HttpResponse("KO Wrong ID", content_type="application/json")
+            serie.save()
+            return HttpResponse('{"id":"'+ serie.id +'"}', content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            serie = models.Serie.objects.get(pk=id).delete()
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
 
 @require_http_methods(['GET'])
 def search_series_by_name(request, name):

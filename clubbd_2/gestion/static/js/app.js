@@ -164,14 +164,12 @@ App.LoansIndexRoute = Em.Route.extend({
 });
 
 App.LoansNewRoute = Em.Route.extend({
-    events: {
-	focus: function () {
-	    console.log('Hack the gibson.');
-	    $('#users_content').removeClass('hidden');
-	}
-    },
     enter: function () {
 	console.log('Enter the matrix.');
+    },
+    setupController: function (controller, model) {
+	controller.set('users', App.User.find());
+	controller.set('books', App.Book.find()); 
     }
 });
 
@@ -187,6 +185,26 @@ App.Router.map(function() {
     this.resource('loans', function () {
 	this.route('new');
     });
+});
+
+App.LoansNewController = Em.Controller.extend({
+    isUsersHidden: true,
+    isBooksHidden: true,
+    userSearch: '',
+    focusUsers: function () {
+	console.log('Hack the gibson.');
+	this.set('isBooksHidden', true);
+	this.set('isUsersHidden', false);
+    },
+    focusBooks: function () {
+	console.log('Hack the fender.');
+	this.set('isBooksHidden', false);
+	this.set('isUsersHidden', true);
+    },
+    updateUsersSearch: function () {
+	console.log('k');
+	console.log(this.userSearch);
+    }
 });
 
 App.LoginTrueController = Em.Controller.extend(),

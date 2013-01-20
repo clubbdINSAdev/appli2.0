@@ -148,7 +148,7 @@
           {% endverbatim %}
 	</script>
 
-        <!-- Loans -->
+        <!-- Loans New -->
 	<script type="text/x-handlebars" data-template-name="loans/new">
 	  {% verbatim %}
 	  <div class="row-fluid">
@@ -156,20 +156,41 @@
 	       <fieldset>
 		 <legend>New loan</legend>
 		 <label>User name</label>
-		 <input {{action "focus" on="focusIn"}} type="text" placeholder="Type user name or id…">
+		 <input {{action "focusUsers" on="focusIn"}} 
+			{{action "updateUsersSearch" on="keyUp"}} 
+			type="text" placeholder="Type user name or id…" {{bindAttr value="userSearch"}}>
 		 <label>Book</label>
-		 <input id="search_books" type="text" placeholder="Type title or id…">
+		 <input {{action "focusBooks" on="focusIn"}} type="text" placeholder="Type title or id…">
 	    </div>
 	    <div class="span7">
-	      <div id="users_content" class="hidden">
-		<p>Content</p>
+	      <div id="books_content" {{bindAttr class=":well :well-large isBooksHidden:hidden"}}>
+		<h3>Books</h3>
+		<table class="table table-striped table-condensed table-hover">
+		  <thead><th>#</th><th>Titre</th></thead>
+		  {{#each book in books}}
+		    {{#with book}}
+		    <tr><td>{{cote}}</td><td>{{titre}}</td></tr>
+		    {{/with}}
+		  {{/each}}
+		</table>
+	      </div>
+	      <div id="users_content" {{bindAttr class=":well :well-large isUsersHidden:hidden"}}>
+		<h3>Users</h3>
+		<table class="table table-striped table-condensed table-hover">
+		  <thead><th>#</th><th>Nom</th></thead>
+		  {{#each user in users}}
+		    {{#with user}}
+		    <tr><td>{{id}}</td><td>{{prenom}} {{nom}}</td></tr>
+		    {{/with}}
+		  {{/each}}
+		</table>
 	      </div>
 	    </div>
           {% endverbatim %}
 	</script>
 
 	<!-- Logged Home -->
-	<script type="text/x-handlebars" data-template-name="loggedHome">	  
+	<script type="text/x-handlebars" data-template-name="loggedHome">
           <div class="hero-unit">
 	    <h1>Bienvenue !!</h1>
 	    <p>Ceci est votre tableau de bord gerez votre bibliotheque depuis celui-ci !</p>

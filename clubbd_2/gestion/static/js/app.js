@@ -191,6 +191,7 @@ App.LoansNewController = Em.Controller.extend({
     isUsersHidden: true,
     isBooksHidden: true,
     userSearch: '',
+    bookSearch: '',
     focusUsers: function () {
 	console.log('Hack the gibson.');
 	this.set('isBooksHidden', true);
@@ -201,11 +202,17 @@ App.LoansNewController = Em.Controller.extend({
 	this.set('isBooksHidden', false);
 	this.set('isUsersHidden', true);
     },
-    updateUsersSearch: function () {
+    updateUserSearch: function () {
 	console.log('k');
 	console.log(this.userSearch);
-    }
+    }.observes('userSearch'),
+    updateBookSearch: function () {
+	console.log('k');
+	console.log(this.bookSearch);
+    }.observes('bookSearch')
 });
+
+App.UserSearchField = Em.TextField.extend();
 
 App.LoginTrueController = Em.Controller.extend(),
 App.LoginTrueView = Em.View.extend({

@@ -156,11 +156,13 @@
 	       <fieldset>
 		 <legend>New loan</legend>
 		 <label>User name</label>
-		 <input {{action "focusUsers" on="focusIn"}} 
-			{{action "updateUsersSearch" on="keyUp"}} 
-			type="text" placeholder="Type user name or id…" {{bindAttr value="userSearch"}}>
+		 <div {{action "focusUsers" on="focusIn"}}>
+		   {{view App.UserSearchField valueBinding="userSearch"}}
+		 </div>
 		 <label>Book</label>
-		 <input {{action "focusBooks" on="focusIn"}} type="text" placeholder="Type title or id…">
+		 <div {{action "focusBooks" on="focusIn"}}>
+		   {{view App.UserSearchField valueBinding="bookSearch"}}
+		 </div>
 	    </div>
 	    <div class="span7">
 	      <div id="books_content" {{bindAttr class=":well :well-large isBooksHidden:hidden"}}>

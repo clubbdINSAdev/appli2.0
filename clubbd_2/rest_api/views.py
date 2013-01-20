@@ -82,7 +82,7 @@ def create_book(post):
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, post['numero'], serie.prefix)
                 date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
-                auteurs = get_auteurs(post['auteurs'])
+                auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
                 volume = models.Volume(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
                     serie=serie, numero=post['numero'], is_manga=post[is_manga], auteurs=auteurs,
@@ -97,7 +97,7 @@ def create_book(post):
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, 1, post(['prefix']))
                 date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
-                auteurs = get_auteurs(post['auteurs'])
+                auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
                 oneshot = models.OneShot(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
                     prefix=post['prefix'], is_manga=post[is_manga], auteurs=auteurs,
@@ -173,7 +173,7 @@ def get_editeur(jEditeur):
         return HttpResponse("KO Editeur Wrong id", content_type="application/json")
     return editeur
 
-def get_auteur(id,nom):
+def get_auteur_from_db(id,nom):
     try:
         if id == None:
             auteur = models.Auteur(nom=nom)
@@ -183,11 +183,11 @@ def get_auteur(id,nom):
     except ObjectDoesNotExist:
         return None
 
-def get_auteurs(jAuteurs):
+def get_auteur_from_dbs_from_db(jAuteurs):
     auteurs = []
     try:
         for jAuteur in jAuteurs:
-            auteurs.add(get_auteur(jAuteur.get('id'),jAuteur['nom']))
+            auteurs.add(get_auteur_from_db(jAuteur.get('id'),jAuteur['nom']))
     except KeyError as e:
         return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
     except ObjectDoesNotExist:
@@ -436,7 +436,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('date_entree') is not None:
                     volume.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') is not None:
-                    volume.auteurs = get_auteurs(post['auteurs'])
+                    volume.auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
                 if post.get('title') is not None:
                     volume.titre = post['title']
                 if post.get('isbn') is not None:
@@ -465,7 +465,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('date_entree') is not None:
                     oneshot.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') is not None:
-                    oneshot.auteurs = get_auteurs(post['auteurs'])
+                    oneshot.auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
                 if post.get('title') is not None:
                     oneshot.titre = post['title']
                 if post.get('isbn') is not None:
@@ -537,6 +537,34 @@ def search_editors_by_name(request, name):
 
 @require_http_methods(['GET', 'POST'])
 @require_actif
+def get_auteurs(request):
+    if request.method == 'GET':
+        auteurs = models.Auteur.objects.all() 
+        return HttpResponse(restify(auteurs), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            auteur = models.Auteur(nom=post['name'])
+            auteur.save()
+            return HttpResponse('{"id":"'+ auteur.id +'"}', content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+
+@require_http_methods(['GET', 'DELETE'])
+@require_actif
+def search_auteurs_by_name(request, name):
+    if request.method == 'GET':
+        auteurs = models.Auteur.objects.filter(nom__icontains=name)
+        return HttpResponse(restify(auteurs), content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            auteur = models.Auteur.objects.get(nom=name).delete()
+            return HttpResponse("Deleted", content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO No editor" + name, content_type="application/json")
+
+@require_http_methods(['GET', 'POST'])
+@require_actif
 def get_categories(request):
     if request.method == 'GET':
         categories = models.Categorie.objects.all() 
@@ -551,6 +579,7 @@ def get_categories(request):
             return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
 
 @require_http_methods(['GET', 'PUT', 'DELETE'])
+@require_actif
 def get_categories_by_prefix(request, prefix):
     if request.method == 'GET':
         return HttpResponse(restify(models.Categorie.objects.get(pk=prefix)), content_type="application/json")

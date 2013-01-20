@@ -42,6 +42,7 @@
 	  {% endverbatim %}
 	</script>
 	
+	<!-- LoginTrue -->
 	<script type="text/x-handlebars" data-template-name="loginTrue">
 	  {% verbatim %}
 	  <div id="loginGreeting" class="nav pull-right">
@@ -53,23 +54,23 @@
 	</script>
 
 	<!-- Book -->
-	<script type="text/x-handlebars" data-template-name="book">
+	<script type="text/x-handlebars" data-template-name="logged/book">
 	  {% verbatim %}
-	  <a {{action back this href=true}}>Back</a>
+	  {{#linkTo "logged.books"}}Back{{/linkTo}}
 	  <h1>{{titre}}</h1>
 	  <p>{{description}}</p>
 	  {% endverbatim %}
 	</script>
 
 	<!-- Book list -->
-	<script type="text/x-handlebars" data-template-name="books">
-	    <h1>Bouquins</h1>
+	<script type="text/x-handlebars" data-template-name="logged/books">
+	    <h1>Bouquins {{test}}</h1>
 	    <table class="table table-striped table-condensed table-hover">
 	      <thead><th>#</th><th>Titre</th></thead>
 	    {% verbatim %}
-	     {{#each book in controller}}
+	     {{#each book in books}}
 	       {{#with book}}
-	         <tr {{action showBook this href=true}} ><td>{{cote}}</td><td>{{titre}}</td></tr>
+	      <tr><td>{{cote}}</td><td>{{titre}}</td><td>{{#linkTo "logged.book" this}}view {{/linkTo}}</td></tr>
 	       {{/with }}
 	     {{/each }}
 	    {% endverbatim %}
@@ -77,14 +78,12 @@
 	</script>
 
 	<!-- User -->
-	<script type="text/x-handlebars" data-template-name="user">
+	<script type="text/x-handlebars" data-template-name="logged/user">
 	  {% verbatim %}
-	  {{#with user}}
-	  <div class="modal-header">
-	    Update
-	  </div>
-	  <div class="modal-body">
-	    <form id="user_form_modal" >
+	  <div class="row-fluid">
+	  <div class="well span6 offset3">
+	    <h1>Update</h1>
+	    <form>
 	      <fieldset>
 		<label>Nom:</label><input type="text" name="lastname" {{bindAttr value="nom"}}>
 		<label>Prenom:</label><input type="text" name="firstname" {{bindAttr value="prenom"}}>
@@ -92,17 +91,14 @@
 		<label>Adresse:</label><input type="text" name="adresse" {{bindAttr value="adresse"}} >
 	      </fieldset>
 	    </form>
+	    <hr>
+	    <button {{action updateUser this}} class="btn btn-primary pull-right">Update user</button>
 	  </div>
-	  <div class="modal-footer">
-	    <button data-dismiss="modal" class="btn">Close</button>
-	    <button {{action updateUser this}}class="btn btn-primary">Update user</button>
-	  </div>
-	  {{/with}}
 	  {% endverbatim %}
 	</script>
 
 	<!-- User list -->
-	<script type="text/x-handlebars" data-template-name="users">
+	<script type="text/x-handlebars" data-template-name="logged/users">
 	  {% verbatim %}
 	  <div id="user_modal" class="modal hide fade">
 	    {{outlet}}
@@ -116,7 +112,7 @@
 	       {{#with user}}
 	         <tr><td>{{id}}</td><td>{{prenom}} {{nom}}</td>
 		   <td><button class="btn btn-danger"><i class="icon-remove-circle"></i></button>
-		     <button {{action showUser this}} class="btn btn-primary"><i class="icon-edit"></i></button>
+		     {{#linkTo "logged.user" this}}<button class="btn btn-primary"><i class="icon-edit"></i></button>{{/linkTo}}
 		   </td>
 		 </tr>
 	       {{/with }}
@@ -136,6 +132,43 @@
 	  </div>
 	</script>
 
+	<!-- Loans -->
+	<script type="text/x-handlebars" data-template-name="loans">
+	  {% verbatim %}
+          <div class="navbar">
+	    <div class="navbar-inner">
+	      <ul class="nav">
+		<li class="active"><a href="#">Current loans</a></li>
+		<li>{{#linkTo "loans.new"}}New loan{{/linkTo}}</a></li>
+		<li><a href="#">Moar</a></li>
+	      </ul>
+	    </div>
+	  </div>
+	  {{outlet}}
+          {% endverbatim %}
+	</script>
+
+        <!-- Loans -->
+	<script type="text/x-handlebars" data-template-name="loans/new">
+	  {% verbatim %}
+	  <div class="row-fluid">
+	    <div class="span5">
+	       <fieldset>
+		 <legend>New loan</legend>
+		 <label>User name</label>
+		 <input {{action "focus" on="focusIn"}} type="text" placeholder="Type user name or id…">
+		 <label>Book</label>
+		 <input id="search_books" type="text" placeholder="Type title or id…">
+	    </div>
+	    <div class="span7">
+	      <div id="users_content" class="hidden">
+		<p>Content</p>
+	      </div>
+	    </div>
+          {% endverbatim %}
+	</script>
+
+	<!-- Logged Home -->
 	<script type="text/x-handlebars" data-template-name="loggedHome">	  
           <div class="hero-unit">
 	    <h1>Bienvenue !!</h1>
@@ -145,11 +178,11 @@
 	    {% verbatim %}
             <div class="span4">
               <h2>Gestion des utilisateurs</h2>
-              <p><a class="btn" {{action goToUsers}}>View details &raquo;</a></p>
+              {{#linkTo "logged.users"}}<button class="btn">View details &raquo;</button>{{/linkTo}}</p>
             </div>
             <div class="span4">
               <h2>Bibliotheque</h2>
-              <a class="btn" {{action goToBooks}}>View details &raquo;</a></p>
+              {{#linkTo "logged.books"}}<button class="btn">View details &raquo;</button>{{/linkTo}}
 	    </div>
             {% endverbatim %}
 	  </div>
@@ -184,8 +217,8 @@
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Navigation <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                    <li><a {{action goToUsers}}>Users</a></li>
-				    <li><a {{action goToBooks}}>Books</a></li>
+                                    <li>{{#linkTo "logged.users"}}Users{{/linkTo}}</li>
+				    <li>{{#linkTo "logged.books"}}Books{{/linkTo}}</li>
                                 </ul>
                             </li>
                         </ul>
@@ -212,21 +245,23 @@
 
 	</script>
 
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="../static/js/libs/jquery-1.7.2.min.js"><\/script>')</script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="../static/js/libs/jquery-1.9.0.js"><\/script>')</script>
 
         <script src="../static/js/libs/bootstrap.min.js"></script>
 
         <script src="../static/js/plugins.js"></script>
         <script src="../static/js/main.js"></script>
 	
-	<script src="../static/js/libs/handlebars-1.0.0.beta.6.js"></script>
-	<script src="../static/js/libs/ember-1.0.0-pre.2.js"></script>
 	<script src="../static/js/libs/bCrypt.js"></script>
+
+	<script src="../static/js/libs/handlebars-1.0.rc.1.js"></script>
+	<script src="../static/js/libs/ember.js"></script>
+	<script src="../static/js/libs/ember-data.js"></script>
 
 	<script src="../static/js/auth.js"></script>
 	<script src="../static/js/app.js"></script>
-  
+
         <script>
             var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
             (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];

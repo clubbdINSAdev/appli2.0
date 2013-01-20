@@ -4,9 +4,17 @@
    Author's custom styles
    ========================================================================== */
 
+.centered {
+    margin: auto;
+}
 
+.fill {
+    width: 100%;
+}
 
-
+.hidden {
+    display: none;
+}
 
 
 

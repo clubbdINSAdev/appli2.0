@@ -1,8 +1,9 @@
 var prefix = '/rest/v1/authenticate';
 
 function get_salt (login, cb, err) {
+    console.log('auth.get_salt');
     jQuery.getJSON(prefix+'/salt?login='+login, function (json) {
-	console.log(json);
+	console.log('salt :' + json);
 	
 	if (json.salt)
 	    cb(json.salt);
@@ -15,6 +16,7 @@ function get_salt (login, cb, err) {
 }
 
 function login(login, pwd, cb, err) {
+    console.log('auth.login');
     get_salt(login, function (salt) {
 	var bcrypt = new bCrypt();
 	bcrypt.hashpw(pwd, salt, function (hash) { 

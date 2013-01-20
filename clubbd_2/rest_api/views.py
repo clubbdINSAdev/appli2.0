@@ -132,7 +132,7 @@ def is_volume(book_id):
 
 def is_oneshot(book_id):
     try:
-        v = models.Oneshot.objects.get(pk=book_id)
+        v = models.OneShot.objects.get(pk=book_id)
         return True
     except ObjectDoesNotExist:
         return False
@@ -409,7 +409,7 @@ def get_ouvrage_by_id(request, id):
             el = models.Volume.objects.get(pk=id)
             el.__dict__['in_serie'] = True
         elif is_oneshot(id):
-            el = models.Oneshot.objects.get(pk=id)
+            el = models.OneShot.objects.get(pk=id)
             el.__dict__['in_serie'] = False
         else:
             return HttpResponse("KO Wrong ID", content_type="application/json")
@@ -452,7 +452,7 @@ def get_ouvrage_by_id(request, id):
                 volume.save()
                 return HttpResponse('{"id":"'+str(volume.cote)+'"}', content_type="application/json")
             else:
-                oneshot = models.Oneshot.objects.get(pk=id)
+                oneshot = models.OneShot.objects.get(pk=id)
                 if post.get('editeur') is not None:
                     oneshot.editeur = get_editeur(post['editeur'])
                 if post.get('cat_prefix') is not None:

@@ -143,7 +143,25 @@ App.LoggedUserRoute = Ember.Route.extend({
 	    outlet: 'main'
 	});
     } 
-})
+});
+
+App.LoansRoute = Em.Route.extend({
+    enter: function () {
+	console.log("Entered loans route.");
+    },
+    renderTemplate: function () {
+	this.render('loans', {
+	    into: 'application',
+	    outlet: 'main'
+	});
+    } 
+});
+
+App.LoansIndexRoute = Em.Route.extend({
+    enter: function () {
+	console.log("Entered loans.index route.");
+    }
+});
 
 App.Router.map(function() {
     this.resource('logged', function() {
@@ -152,6 +170,10 @@ App.Router.map(function() {
 
 	this.route('users');
 	this.route('user', {path: '/users/:user_id'});
+    });
+    
+    this.resource('loans', function () {
+	this.route('new');
     });
 });
 

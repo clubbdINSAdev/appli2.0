@@ -652,6 +652,8 @@ def get_serie_by_id(request, id):
                     return HttpResponse("KO Wrong ID", content_type="application/json")
             serie.save()
             return HttpResponse('{"id":"'+ serie.id +'"}', content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
     elif request.method == 'DELETE':
         try:
             serie = models.Serie.objects.get(pk=id).delete()

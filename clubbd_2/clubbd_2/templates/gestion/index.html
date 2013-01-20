@@ -156,12 +156,14 @@
 	       <fieldset>
 		 <legend>New loan</legend>
 		 <label>User name</label>
-		 <input id="search_users" type="text" placeholder="Type user name or id…">
+		 <input {{action "focus" on="focusIn"}} type="text" placeholder="Type user name or id…">
 		 <label>Book</label>
 		 <input id="search_books" type="text" placeholder="Type title or id…">
 	    </div>
 	    <div class="span7">
-	      <!--Body content-->
+	      <div id="users_content" class="hidden">
+		<p>Content</p>
+	      </div>
 	    </div>
           {% endverbatim %}
 	</script>

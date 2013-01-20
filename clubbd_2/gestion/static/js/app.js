@@ -163,6 +163,18 @@ App.LoansIndexRoute = Em.Route.extend({
     }
 });
 
+App.LoansNewRoute = Em.Route.extend({
+    events: {
+	focus: function () {
+	    console.log('Hack the gibson.');
+	    $('#users_content').removeClass('hidden');
+	}
+    },
+    enter: function () {
+	console.log('Enter the matrix.');
+    }
+});
+
 App.Router.map(function() {
     this.resource('logged', function() {
 	this.route('books');

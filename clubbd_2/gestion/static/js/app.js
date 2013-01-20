@@ -1,8 +1,3 @@
-/*******************************************************
-TODO'S:
-- Move stuff into different files
-********************************************************/
-
 var App = Ember.Application.create({
     alert: function (message, type, time) {
 	var message = message || '',
@@ -24,170 +19,152 @@ var App = Ember.Application.create({
 	    alert.alert('close');
 	}, time);
     },
-    __self: this
+    __self: this,
+    HomeView: Em.View.extend({
+	templateName: 'home'
+    }),
+    LoggedController: Em.Controller.extend(),
+    LoggedView: Em.View.extend({
+	templateName: 'loggedHome'
+    }),
+    HomeController: Em.Controller.extend(),
+    BookController: Em.ObjectController.extend(),
+    BookView: Em.View.extend({
+	templateName: 'book'
+    }),
+    BooksController: Ember.ArrayController.extend(),
+    BooksView: Ember.View.extend({
+	templateName: 'books'
+    }),
+    UserController: Em.ObjectController.extend(),
+    UserView: Em.View.extend({
+	templateName: 'user'
+    }),
+    UsersController: Ember.ArrayController.extend(),
+    UsersView: Em.ContainerView.extend({
+	currentView: Ember.View.extend({
+	    templateName: 'users',	
+	})
+    }),
+    ApplicationController: Ember.Controller.extend(),
+    ApplicationView: Ember.View.extend({
+	templateName: 'application',
+    }),
+    Router: Ember.Router.extend({
+	enableLogging: true,
+	root: Ember.Route.extend({
+	    shout: function () {
+		window.alert("More information ! NOT !");
+	    },
+	    index: Ember.Route.extend({
+		route: '/',
+		enter: function () {
+		    var cur = sessionStorage.getItem('current');
+		    if (cur) {
+			cur = JSON.parse(cur);
+			console.log('Already logged in. (as '+cur.lastName+')')
+			App.Connected.updateCurrent(cur);
+			App.router.transitionTo('logged.index');
+		    }
+		},
+		connectOutlets: function(router) {
+		    router.get('applicationController').connectOutlet('main', 'home');
+		    router.get('applicationController').connectOutlet('login', 'loginForm');
+		}
+	    }),
+	    logged: Em.Route.extend({
+		route: '/logged',
+		goToUsers: Ember.Route.transitionTo('users.index'),
+		goToBooks: Ember.Route.transitionTo('books.index'),
+		enter: function() {
+		    App.alert('You are logged in !', 'success');
+		},
+		index: Ember.Route.extend({
+		    route: '/',
+		    enter: function () {
+			console.log('Know in logged in zone.');
+		    },
+		    connectOutlets: function(router) {
+			router.get('applicationController').connectOutlet('main', 'logged');
+			router.get('applicationController').connectOutlet('login', 'loginTrue', App.Connected.current());
+		    }
+		}),
+		books: Ember.Route.extend({
+		    showBook: Ember.Route.transitionTo('books.book'),
+		    route: '/books',
+		    index: Ember.Route.extend({
+			enter: function () {
+			    console.log("Entered books state.");
+			},
+			route: '/',
+			connectOutlets: function(router) {
+			    router.get('applicationController').connectOutlet('main', 'books', App.Book.all());
+			},
+		    }),
+		    book: Ember.Route.extend({
+			back: Ember.Route.transitionTo('books.index'),
+			route: '/:id',
+			enter: function () {
+			    console.log("Entered book state.");
+			},
+			deserialize: function(router, context){
+			    return App.Book.find(context.cote);
+			},
+			serialize: function(router, context){
+			    return {
+				id: context.cote
+			    }
+			},
+			connectOutlets: function(router, aBook){
+			    router.get('applicationController').connectOutlet('main', 'book', aBook); 
+			}
+		    })
+		}),
+		users: Ember.Route.extend({
+		    route: '/users',
+		    enter: function () {
+			
+		    },
+		    addUser: function () {
+			console.log("Add user");
+			$('#user_modal').modal({show: false});
+			var new_user = $('#new_user');
+		    },
+		    showUser: Ember.Route.transitionTo('users.user'),
+		    index: Ember.Route.extend({
+			route: '/',
+			connectOutlets: function(router) {
+			    router.get('applicationController').connectOutlet('main', 'users', App.User.all());
+			}
+		    }),
+		    user: Ember.Route.extend({
+			enter: function () {
+			    console.log("user");
+			    $('#user_modal').modal();
+			    $('#user_modal').on('hidden', function () {
+				App.router.transitionTo('users.index');
+			    });
+			},
+			route: '/:id',
+			deserialize: function(router, context) {
+			    return App.User.find(context.id);
+			},
+			serialize: function(router, context) {
+			    return {
+				id: context.id
+			    }
+			},
+			connectOutlets: function(router, user) {
+			    var usersController = router.get('usersController');
+			    usersController.connectOutlet('user', {user: user});
+			}
+		    })
+		})
+	    })
+	})
+    })
 });
 
-App.IndexRoute = Ember.Route.extend({
-    enter: function () {
-	console.log('Entered index route.');
-    },
-    redirect: function () {
-	var cur = sessionStorage.getItem('current');
-	if (cur) {
-	    this.transitionTo('logged');
-	}
-    },
-    renderTemplate: function() {
-	this.render('home', {
-	    outlet: 'main'
-	});
-	this.render('loginForm', {
-	    outlet: 'login'
-	});
-    }
-});
-
-App.LoggedRoute = Em.Route.extend({
-    enter: function () {
-	console.log('Entered logged route.');
-    },
-    redirect: function () {
-	var cur = sessionStorage.getItem('current');
-	if (!cur) {
-	    console.log('Not logged in redirecting ...');
-	    App.alert('You\'re not logged in ! Log in please.');
-	    this.transitionTo('index');
-	}
-    }
-});
-
-App.LoggedIndexRoute = Em.Route.extend({
-    enter: function() {
-	App.alert('You are logged in !', 'success');
-    },
-    renderTemplate: function () {
-	this.render('loggedHome', {
-	    outlet: 'main'
-	});
-	this.render('loginTrue', {
-	    outlet: 'login'
-	});
-    }
-});
-
-App.LoggedBooksRoute = Ember.Route.extend({
-    enter: function () {
-	console.log("Entered logge.books route.");
-    },
-    model: function () {
-	return App.Book.find();
-    },
-    setupController: function(controller, model) {
-	controller.set('test', '1,2,3');
-	controller.set('books', model);
-    },
-    renderTemplate: function () {
-	this.render('logged/books', {
-	    into: 'application',
-	    outlet: 'main',
-	});
-    }
-});
-
-App.LoggedBookRoute = Ember.Route.extend({
-    enter: function () {
-	console.log("Entered book state.");
-    },
-    model: function(params){
-	return App.Book.find(params.book_id);
-    },
-    renderTemplate: function () {
-	this.render('logged/book', {
-	    into: 'application',
-	    outlet: 'main'
-	});
-    }
-});
-
-App.LoggedUsersRoute = Ember.Route.extend({
-    enter: function () {
-	console.log("Entered logged.users route.");
-    },
-    addUser: function () {
-	console.log("Add user");
-	$('#user_modal').modal({show: false});
-	var new_user = $('#new_user');
-    },
-    model: function () {
-	return  App.User.find();
-    },
-    renderTemplate: function () {
-	this.render('logged/users', {
-	    into: 'application',
-	    outlet: 'main'
-	});
-    }
-});	
-
-
-App.LoggedUserRoute = Ember.Route.extend({
-    enter: function () {
-	console.log("user");
-    },
-    model: function(params) {
-	return App.User.find(params.user_id);
-    },
-    renderTemplate: function () {
-	this.render('logged/user', {
-	    into: 'application',
-	    outlet: 'main'
-	});
-    } 
-});
-
-App.LoansRoute = Em.Route.extend({
-    enter: function () {
-	console.log("Entered loans route.");
-    },
-    renderTemplate: function () {
-	this.render('loans', {
-	    into: 'application',
-	    outlet: 'main'
-	});
-    } 
-});
-
-App.LoansIndexRoute = Em.Route.extend({
-    enter: function () {
-	console.log("Entered loans.index route.");
-    }
-});
-
-App.LoansNewRoute = Em.Route.extend({
-    events: {
-	focus: function () {
-	    console.log('Hack the gibson.');
-	    $('#users_content').removeClass('hidden');
-	}
-    },
-    enter: function () {
-	console.log('Enter the matrix.');
-    }
-});
-
-App.Router.map(function() {
-    this.resource('logged', function() {
-	this.route('books');
-	this.route('book', {path: '/books/:book_id'});
-
-	this.route('users');
-	this.route('user', {path: '/users/:user_id'});
-    });
-    
-    this.resource('loans', function () {
-	this.route('new');
-    });
-});
 
 App.LoginTrueController = Em.Controller.extend(),
 App.LoginTrueView = Em.View.extend({
@@ -214,26 +191,23 @@ App.LoginFormView = Em.View.extend({
 	    'class': 'nav pull-right'
 	});
 
-	login(form.children('input[type=text]').val(),
-	      form.children('input[type=password]').val(), 
-	      function (json) {
-		  console.log("got key");
-		  json.firstName = json.prenom;
-		  json.lastName = json.nom;
-		  App.Connected.updateCurrent(json);
-		  sessionStorage.setItem('current', JSON.stringify(App.Connected.current()));
-		  
-		  if (json.api_key) {
-		      console.log('logged')
-		      App.Router.router.transitionTo('logged.index');
-		  }
-		  // TODO: Get cookie
-	      }, function (err) {
-		  console.log('login failed: '+err.reason);
-		  loading.fadeToggle();
-		  form.fadeToggle();
-		  App.alert('Login failed ...', 'error');
-	      });
+	login(form.children('input[type=text]').val(), form.children('input[type=password]').val(), function (json) {
+	    console.log("got key");
+	    json.firstName = json.prenom;
+	    json.lastName = json.nom;
+	    App.Connected.updateCurrent(json);
+	    sessionStorage.setItem('current', JSON.stringify(App.Connected.current()));
+	    
+	    if (json.api_key) {
+		console.log('goto root.logged.index')
+		App.router.transitionTo('root.logged.index');
+	    }
+	    // TODO: Get cookie
+	}, function (err) {
+	    loading.fadeToggle();
+	    form.fadeToggle();
+	    App.alert('Login failed ...', 'error');
+	});
 	
 	div.append(loading);
 
@@ -250,12 +224,12 @@ App.Connected = Em.Object.create({
 	telephone: null,
 	mail: null,
 	id: null,
-	api_key: null
-	/*fullName: function() {
+	api_key: null,
+	fullName: function() {
 	    var firstName = this.get('firstName');
 	    var lastName = this.get('lastName');
 	    return firstName + ' ' + lastName;
-	}.property('firstName', 'lastName')*/
+	}.property('firstName', 'lastName')
     }),
     updateCurrent: function (obj) {
 	this.__current.setProperties(obj); 
@@ -265,114 +239,47 @@ App.Connected = Em.Object.create({
     }
 });
 
-App.Book = DS.Model.extend({
-    primaryKey: 'cote',
-    is_manga: DS.attr('string'),
-    isbn: DS.attr('string'), 
-    description: DS.attr('string'),
-    ean: DS.attr('string'),
-    serie_id: DS.attr('number'), 
-    numero: DS.attr('number'),
-    cote: DS.attr('string'), 
-    in_serie: DS.attr('boolean'), 
-    date_entree: DS.attr('date'), 
-    titre: DS.attr('string'),
-    empruntable: DS.attr('boolean'),
-});
-
+App.Book = Ember.Object.extend();
 App.Book.reopenClass({
-    url: function () {
-	return '/books';
+    __listOfBooks: Em.A(),
+    all: function () {
+	var allBooks = this.__listOfBooks;
+	jQuery.getJSON('/rest/v1/books/all?limit=50', function(json) {
+	    console.log("Got json, " + json.length + " books");
+	    allBooks.clear();
+	    allBooks.pushObjects(json);
+	});
+	return this.__listOfBooks;
     },
-    args: function (conf) {
-	var ret = '?';
-	
-	if (conf.all) {
-	    ret += 'limit=20';
-	}	    
-	return ret;
+    find: function (id) {
+	return this.__listOfBooks.findProperty('cote', id);
     }
 });
 
-App.User = DS.Model.extend({
-    adresse: DS.attr('string'),
-    mail: DS.attr('string'),
-    nom: DS.attr('string'),
-    prenom: DS.attr('string'),
-    telephone: DS.attr('string')
-});
-
+App.User = Ember.Object.extend();
 App.User.reopenClass({
-    url: function () {
-	    return '/users';
-    },
-    args: function () {
-	var user = App.Connected.current(),
-	ret = '';
+    __listOfUsers: Em.A(),
+    all: function () {
+	console.log('get all users');
+	var allUsers = this.__listOfUsers,
+	user = App.Connected.current();
 	
-	if (user.get('api_key')) {
-	    ret =  '?login='+user.get('mail')+
+	if (user.get('api_key') && this.__listOfUsers.length == 0) {
+	    var url = '/rest/v1/users/all?login='+user.get('mail')+
 		'&api_key='+user.get('api_key');
-	}
-
-	return ret;
+	    console.log(url);
+	    jQuery.getJSON(url, function(json) {
+		console.log(json);
+		allUsers.clear();
+		allUsers.pushObjects(json);
+	    });
+	} 
+	return this.__listOfUsers;
+    },
+    find: function (id) {
+	return this.__listOfUsers.findProperty('id', id);
     }
 });
 
-// DS.Adapter.configure('primaryKey', {
-//     book: 'cote'
-// });
-
-App.adapter = DS.Adapter.create({
-    url: '/rest/v',
-    version: 1,
-    find: function (store, type, id) {
-	var url = this.url + this.version + type.url() + '/' + id + type.args(),
-	self = this;
-	
-	console.log(url);
-	jQuery.getJSON(url, function(data) {
-	    var payload = {};
-
-	    payload[type.toString().split('.')[1].toLowerCase()] = data;
-	    self.didFindRecord(store, type, payload, id);
-	});
-    },
-    findMany: function (store, type, ids) {
-	// TODO
-    },
-    findQuery: function (store, type, query, result) {
-	// TODO
-    },
-    findAll: function (store, type) {
-	console.log('find all');
-	var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
-	self = this;
-
-	console.log(url);
-	jQuery.getJSON(url, function(data) {
-	    console.log(type.name);
-	    var payload = {};
-
-	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;
-	    self.didFindAll(store, type, payload);
-	});
-    },
-    // Write
-});
-
-App.Store = DS.Store.extend({
-    revision: 11,
-    adapter: App.adapter
-});
-
-App.ready = function () {
-    var cur = sessionStorage.getItem('current');
-    if (cur) {    
-	cur = JSON.parse(cur);
-	console.log('Already logged in. (as '+cur.lastName+')')
-	App.Connected.updateCurrent(cur);
-    }
-}
 
 App.initialize();

@@ -707,6 +707,41 @@ def get_emprunts(request):
                 e.save()
             return HttpResponse("OK Registerd", content_type="application/json")
 
+@require_http_methods(['GET'])
+def get_emprunts_history(request):
+    emprunts = models.Historique.objects.all()
+    return HttpResponse(restify(emprunts), content_type="application/json")
+
+@require_http_methods(['GET'])
+def search_emprunts_history_by_user(request, user_id):
+    try:
+        user = models.Utilisateur.objects.get(pk=user_id)
+        emprunts = models.History.objects.filter(utilisateur=user)
+        return HttpResponse(restify(emprunts), content_type="application/json")
+    except:
+        return HttpResponse("KO Wrong User ID", content_type="application/json")
+
+@require_http_methods(['GET'])
+def search_emprunts_history_by_book(request, cote):
+    try:
+        book = models.Ouvrage.objects.get(pk=cote)
+        emprunts = models.History.objects.filter(ouvrage=book)
+        return HttpResponse(restify(emprunts), content_type="application/json")
+    except:
+        return HttpResponse("KO Wrong Book ID", content_type="application/json")
+
+@require_http_methods(['GET'])
+def search_emprunts_history_by_serie(request, serie_id):
+    try:
+        serie = models.Serie.objects.get(pk=serie_id)
+        books = models.Volume.objects.filter(serie=serie)
+        emprunts = []
+        for book in books:
+            emprunts.append(models.History.objects.filter(ouvrage=book))
+        return HttpResponse(restify(emprunts), content_type="application/json")
+    except:
+        return HttpResponse("KO Wrong Serie ID", content_type="application/json")
+
 @require_http_methods(['DELETE'])
 @require_actif
 def return_book(request):

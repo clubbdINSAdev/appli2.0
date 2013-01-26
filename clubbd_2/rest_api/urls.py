@@ -22,6 +22,14 @@ urlpatterns = patterns('',
                        url(r'^series/(?P<id>\d+)', 'rest_api.views.get_serie_by_id'),
                        url(r'^authenticate/salt', 'rest_api.views.get_salt'),
                        url(r'^authenticate', 'rest_api.views.authenticate'),
-                       url(r'^emprunts', 'rest_api.views.get_emprunts'),
-                       url(r'^emprunts/return', 'rest_api.views.return_book')
+                       url(r'^emprunts/history/all', 'rest_api.views.get_emprunts_history'),
+                       url(r'^emprunts/history/user/(?P<user_id>\d+)', 'rest_api.views.search_emprunts_history_by_user'),
+                       url(r'^emprunts/history/book/(?P<cote>\d+)', 'rest_api.views.search_emprunts_history_by_book'),
+                       url(r'^emprunts/history/serie/(?P<serie_id>\d+)', 'rest_api.views.search_emprunts_history_by_serie'),
+                       url(r'^postes/all', 'rest_api.views.get_postes'),
+                       url(r'^postes/(?P<id>\d+)', 'rest_api.views.get_poste_by_id'),
+                       url(r'^actifs/all', 'rest_api.views.get_actifs'),
+                       url(r'^actifs/(?P<id>\d+)', 'rest_api.views.get_actif_by_id'),
+                       url(r'^emprunts/return', 'rest_api.views.return_book'),
+                       url(r'^emprunts/all', 'rest_api.views.get_emprunts')
                       )

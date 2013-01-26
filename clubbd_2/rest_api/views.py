@@ -132,7 +132,7 @@ def is_volume(book_id):
 
 def is_oneshot(book_id):
     try:
-        v = models.Oneshot.objects.get(pk=book_id)
+        v = models.OneShot.objects.get(pk=book_id)
         return True
     except ObjectDoesNotExist:
         return False
@@ -409,7 +409,7 @@ def get_ouvrage_by_id(request, id):
             el = models.Volume.objects.get(pk=id)
             el.__dict__['in_serie'] = True
         elif is_oneshot(id):
-            el = models.Oneshot.objects.get(pk=id)
+            el = models.OneShot.objects.get(pk=id)
             el.__dict__['in_serie'] = False
         else:
             return HttpResponse("KO Wrong ID", content_type="application/json")
@@ -452,7 +452,7 @@ def get_ouvrage_by_id(request, id):
                 volume.save()
                 return HttpResponse('{"id":"'+str(volume.cote)+'"}', content_type="application/json")
             else:
-                oneshot = models.Oneshot.objects.get(pk=id)
+                oneshot = models.OneShot.objects.get(pk=id)
                 if post.get('editeur') is not None:
                     oneshot.editeur = get_editeur(post['editeur'])
                 if post.get('cat_prefix') is not None:
@@ -656,7 +656,7 @@ def get_serie_by_id(request, id):
             return HttpResponse("KO Wrong ID", content_type="application/json")
     elif request.method == 'DELETE':
         try:
-            serie = models.Serie.objects.get(pk=id).delete()
+            models.Serie.objects.get(pk=id).delete()
         except ObjectDoesNotExist:
             return HttpResponse("KO Wrong ID", content_type="application/json")
 
@@ -707,6 +707,41 @@ def get_emprunts(request):
                 e.save()
             return HttpResponse("OK Registerd", content_type="application/json")
 
+@require_http_methods(['GET'])
+def get_emprunts_history(request):
+    emprunts = models.Historique.objects.all()
+    return HttpResponse(restify(emprunts), content_type="application/json")
+
+@require_http_methods(['GET'])
+def search_emprunts_history_by_user(request, user_id):
+    try:
+        user = models.Utilisateur.objects.get(pk=user_id)
+        emprunts = models.History.objects.filter(utilisateur=user)
+        return HttpResponse(restify(emprunts), content_type="application/json")
+    except:
+        return HttpResponse("KO Wrong User ID", content_type="application/json")
+
+@require_http_methods(['GET'])
+def search_emprunts_history_by_book(request, cote):
+    try:
+        book = models.Ouvrage.objects.get(pk=cote)
+        emprunts = models.History.objects.filter(ouvrage=book)
+        return HttpResponse(restify(emprunts), content_type="application/json")
+    except:
+        return HttpResponse("KO Wrong Book ID", content_type="application/json")
+
+@require_http_methods(['GET'])
+def search_emprunts_history_by_serie(request, serie_id):
+    try:
+        serie = models.Serie.objects.get(pk=serie_id)
+        books = models.Volume.objects.filter(serie=serie)
+        emprunts = []
+        for book in books:
+            emprunts.append(models.History.objects.filter(ouvrage=book))
+        return HttpResponse(restify(emprunts), content_type="application/json")
+    except:
+        return HttpResponse("KO Wrong Serie ID", content_type="application/json")
+
 @require_http_methods(['DELETE'])
 @require_actif
 def return_book(request):
@@ -721,3 +756,71 @@ def return_book(request):
         return HttpResponse("Deleted and archived", content_type="application/json")
     except ObjectDoesNotExist:
         return HttpResponse("KO Wrong ID", content_type="application/json")
+
+@require_http_methods(['GET', 'POST'])
+@require_actif
+def get_postes(request):
+    if request.method == 'GET':
+        postes = models.Poste.objects.all()
+        return HttpResponse(restify(postes), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            poste = models.Serie(nom=post['name'], droits=['droits'])
+            poste.save()
+            return HttpResponse('{"id":"'+ poste.id +'"}', content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+
+@require_http_methods(['GET', 'PUT', 'DELETE'])
+@require_actif
+def get_poste_by_id(request, id):
+    if request.method == 'GET':
+        return HttpResponse(restify(models.Poste.objects.get(pk=id)), content_type="application/json")
+    elif request.method == 'PUT':
+        post = json.loads(request.body)
+        try:
+            poste = models.Poste.objects.get(pk=id)
+            if post.get('name') is not None:
+                poste.nom=post['name']
+            if post.get('droits') is not None:
+                poste.droits=post['droits']
+            poste.save()
+            return HttpResponse('{"id":"'+ poste.id +'"}', content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            models.Poste.objects.get(pk=id).delete()
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+
+@require_http_methods(['GET', 'POST'])
+@require_actif
+def get_actifs(request):
+    if request.method == 'GET':
+        actifs = models.Actif.objects.all()
+        return HttpResponse(restify(actifs), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            utilisateur = models.Utilisateur.objects.get(pk=post['user_id'])
+            poste = models.Poste.objects.get(pk=post['poste_id'])
+            actif = models.Actif(utilisateur=utilisateur, poste=poste)
+            actif.save()
+            return HttpResponse('{"id":"'+ actif.id +'"}', content_type="application/json")
+        except ObjectDoesNotExist as e:
+            return HttpResponse("KO Wrong "+ str(e) + " ID", content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+
+@require_http_methods(['GET', 'DELETE'])
+@require_actif
+def get_actif_by_id(request, id):
+    if request.method == 'GET':
+        return HttpResponse(restify(models.Actif.objects.get(pk=id)), content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            models.Actif.objects.get(pk=id).delete()
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")

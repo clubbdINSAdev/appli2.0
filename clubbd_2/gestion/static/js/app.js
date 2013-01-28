@@ -409,6 +409,20 @@ App.adapter = DS.Adapter.create({
 	});
     },
     // Write
+    createRecord: function(store, type, model) {
+	console.log('create');
+	var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
+	self = this;
+
+	console.log(url);
+	jQuery.getJSON(url, function(data) {
+	    console.log(type.name);
+	    var payload = {};
+
+	    
+	    self.didFindAll(store, type, payload);
+	});
+    }
 });
 
 App.Store = DS.Store.extend({

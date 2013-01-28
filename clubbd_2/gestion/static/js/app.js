@@ -357,9 +357,28 @@ App.User.reopenClass({
     }
 });
 
-// DS.Adapter.configure('primaryKey', {
-//     book: 'cote'
-// });
+App.Loan = DS.Model.extend({
+    utilisateur: DS.attr('string'),
+    ouvrage: DS.attr('string'),
+    date: DS.attr('date')
+});
+
+App.Loan.reopenClass({
+    url: function () {
+	    return '/emprunts';
+    },
+    args: function () {
+	var user = App.Connected.current(),
+	ret = '';
+	
+	if (user.get('api_key')) {
+	    ret =  '?login='+user.get('mail')+
+		'&api_key='+user.get('api_key');
+	}
+
+	return ret;
+    }
+});
 
 App.adapter = DS.Adapter.create({
     url: '/rest/v',

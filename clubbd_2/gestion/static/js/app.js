@@ -304,7 +304,6 @@ App.Connected = Em.Object.create({
 });
 
 App.Book = DS.Model.extend({
-    primaryKey: 'cote',
     is_manga: DS.attr('string'),
     isbn: DS.attr('string'), 
     description: DS.attr('string'),
@@ -319,6 +318,7 @@ App.Book = DS.Model.extend({
 });
 
 App.Book.reopenClass({
+    primaryKey: 'cote',
     url: function () {
 	return '/books';
     },

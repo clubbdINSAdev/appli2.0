@@ -367,7 +367,19 @@ App.adapter = DS.Adapter.create({
 	// TODO
     },
     findQuery: function (store, type, query, result) {
-	// TODO
+	console.log('findQuery');
+	var url = this.url + this.version + type.url() + '/name/'+ query.firstName + type.args(),
+	self = this;
+
+	console.log(url);
+	jQuery.getJSON(url, function(data) {
+	    console.log(type.name);
+	    var payload = {};
+
+	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;
+	    console.log(payload);
+	    self.didFindQuery(store, type, payload, result);
+	});
     },
     findAll: function (store, type) {
 	console.log('find all');

@@ -28,7 +28,7 @@ class FrontTest(unittest.TestCase):
         self.assertTrue(greeting is not None)
 
     def test_login_success(self):
-        self.driver.get('localhost:8000/gestion')
+        self.driver.get('localhost:8000/gestion/#')
         form = self.driver.find_element_by_id('login')
         form.find_element_by_css_selector('input[type=text]').send_keys(self.login_true)
         form.find_element_by_css_selector('input[type=password]').send_keys(self.pwd_true)
@@ -39,7 +39,7 @@ class FrontTest(unittest.TestCase):
 
         
     def test_login_failure(self):
-        self.driver.get('localhost:8000/gestion')
+        self.driver.get('localhost:8000/gestion/#')
         form = self.driver.find_element_by_id('login')
         form.find_element_by_css_selector('input[type=text]').send_keys(self.login_false)
         form.find_element_by_css_selector('input[type=password]').send_keys(self.pwd_false)
@@ -50,19 +50,19 @@ class FrontTest(unittest.TestCase):
 
 
     def test_users(self):
-        self.driver.get('localhost:8000/gestion/')
+        self.driver.get('localhost:8000/gestion/#')
         self.login()
 
-        self.driver.get('localhost:8000/gestion/#/users')
+        self.driver.get('localhost:8000/gestion/#/logged/users')
         modal = self.driver.find_element_by_id('user_modal')
         self.assertTrue(modal is not None)
 
 
     def test_user(self):
-        self.driver.get('localhost:8000/gestion/')
+        self.driver.get('localhost:8000/gestion/#')
         self.login()
 
-        self.driver.get('localhost:8000/gestion/#/users')
+        self.driver.get('localhost:8000/gestion/#/logged/users')
         #modal = self.driver.find_element_by_id('user_modal')
         #self.assertTrue(modal is not None)
 

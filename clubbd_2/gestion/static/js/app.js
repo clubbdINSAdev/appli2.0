@@ -196,7 +196,15 @@ App.LoansNewController = Em.Controller.extend({
     _allUsers: function() {
 	var _users = App.User.find();
 	this.set('allUsers', _users);
+	
 	return _users;
+    },
+
+    _then: function () {
+	var _then = Date.now();
+	this.set('then', _then);
+
+	return _then;
     },
 
     focusUsers: function () {
@@ -210,18 +218,30 @@ App.LoansNewController = Em.Controller.extend({
 	this.set('isUsersHidden', true);
     },
     updateUserSearch: function () {
-	var 
-	userSearch = this.userSearch,
-	users = this.get('allUsers') || this._allUsers(),
-	filtered_users =
-	    users.filter(function (i) {
-		return i.get('prenom').toLowerCase().indexOf(userSearch.toLowerCase()) != -1;
-	    });
+	var userSearch = this.userSearch,
+	    users = this.get('allUsers') || this._allUsers(),
+	    filtered_users =
+		users.filter(function (i) {
+		    return i.get('prenom').toLowerCase().indexOf(userSearch.toLowerCase()) != -1;
+		});
+	
 	this.set('users', filtered_users);
     }.observes('userSearch'),
     updateBookSearch: function () {
-	console.log('k');
-	console.log(this.bookSearch);
+	var then = this.get('then') || this._then(),
+	    now = Date.now(),
+	    filtered_books;
+	
+	if (now > then + 100) {
+	    this.set('then', now);
+	    if (this.bookSearch != '' ) {
+		filtered_books = App.Book.find({titre: this.bookSearch});
+	    } else {
+		filtered_books = App.Book.find();
+	    }
+
+	    this.set('books', filtered_books);
+	}
     }.observes('bookSearch')
 });
 
@@ -262,7 +282,7 @@ App.LoginFormView = Em.View.extend({
 		  sessionStorage.setItem('current', JSON.stringify(App.Connected.current()));
 		  
 		  if (json.api_key) {
-		      console.log('logged')
+		      console.log('logged'),
 		      App.Router.router.transitionTo('logged.index');
 		  }
 		  // TODO: Get cookie
@@ -415,7 +435,6 @@ App.adapter = DS.Adapter.create({
 	    var payload = {};
 
 	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;
-	    console.log(payload);
 	    self.didFindQuery(store, type, payload, result);
 	});
     },

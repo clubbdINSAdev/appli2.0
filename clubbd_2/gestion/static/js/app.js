@@ -314,7 +314,7 @@ App.Book = DS.Model.extend({
     in_serie: DS.attr('boolean'), 
     date_entree: DS.attr('date'), 
     titre: DS.attr('string'),
-    empruntable: DS.attr('boolean'),
+    empruntable: DS.attr('boolean')
 });
 
 App.Book.reopenClass({
@@ -325,7 +325,7 @@ App.Book.reopenClass({
     args: function (conf) {
 	var ret = '?';
 	
-	if (conf.all) {
+	if (conf && conf.all) {
 	    ret += 'limit=20';
 	}	    
 	return ret;
@@ -400,8 +400,14 @@ App.adapter = DS.Adapter.create({
     },
     findQuery: function (store, type, query, result) {
 	console.log('findQuery');
-	var url = this.url + this.version + type.url() + '/name/'+ query.firstName + type.args(),
-	self = this;
+	var url = this.url + this.version + type.url() + '/search/',
+	    self = this;
+
+	for(var k in query) {
+	    url += k + '=' + query[k];
+	}
+
+	url += type.args();
 
 	console.log(url);
 	jQuery.getJSON(url, function(data) {

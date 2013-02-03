@@ -30,6 +30,10 @@ urlpatterns = patterns('',
                        url(r'^postes/(?P<id>\d+)', 'rest_api.views.get_poste_by_id'),
                        url(r'^actifs/all', 'rest_api.views.get_actifs'),
                        url(r'^actifs/(?P<id>\d+)', 'rest_api.views.get_actif_by_id'),
+                       url(r'^plans/all', 'rest_api.views.get_plans'),
+                       url(r'^plans/(?P<id>\d+)', 'rest_api.views.get_plan_by_id'),
+                       url(r'^abonnements/all', 'rest_api.views.get_abonnements'),
+                       url(r'^abonnements/(?P<id>\d+)', 'rest_api.views.get_abonnement_by_id'),
                        url(r'^emprunts/return', 'rest_api.views.return_book'),
                        url(r'^emprunts/all', 'rest_api.views.get_emprunts')
                       )

@@ -82,7 +82,7 @@ def create_book(post):
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, post['numero'], serie.prefix)
                 date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
-                auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                auteurs = get_auteur_from_db(post['auteurs'])
                 volume = models.Volume(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
                     serie=serie, numero=post['numero'], is_manga=post[is_manga], auteurs=auteurs,
@@ -97,7 +97,7 @@ def create_book(post):
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, 1, post(['prefix']))
                 date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
-                auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                auteurs = get_auteur_from_db(post['auteurs'])
                 oneshot = models.OneShot(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
                     prefix=post['prefix'], is_manga=post[is_manga], auteurs=auteurs,
@@ -183,7 +183,7 @@ def get_auteur_from_db(id,nom):
     except ObjectDoesNotExist:
         return None
 
-def get_auteur_from_dbs_from_db(jAuteurs):
+def get_auteur_from_db(jAuteurs):
     auteurs = []
     try:
         for jAuteur in jAuteurs:
@@ -436,7 +436,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('date_entree') is not None:
                     volume.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') is not None:
-                    volume.auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                    volume.auteurs = get_auteur_from_db(post['auteurs'])
                 if post.get('title') is not None:
                     volume.titre = post['title']
                 if post.get('isbn') is not None:
@@ -465,7 +465,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('date_entree') is not None:
                     oneshot.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') is not None:
-                    oneshot.auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                    oneshot.auteurs = get_auteur_from_db(post['auteurs'])
                 if post.get('title') is not None:
                     oneshot.titre = post['title']
                 if post.get('isbn') is not None:

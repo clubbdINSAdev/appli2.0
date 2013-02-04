@@ -82,7 +82,7 @@ def create_book(post):
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, post['numero'], serie.prefix)
                 date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
-                auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                auteurs = get_auteur_from_db(post['auteurs'])
                 volume = models.Volume(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
                     serie=serie, numero=post['numero'], is_manga=post[is_manga], auteurs=auteurs,
@@ -97,7 +97,7 @@ def create_book(post):
                 categorie = models.Categorie.objects.get(pk=post['cat_prefix'])
                 cote = generate_cote(categorie, 1, post(['prefix']))
                 date = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
-                auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                auteurs = get_auteur_from_db(post['auteurs'])
                 oneshot = models.OneShot(cote=cote, titre=post['title'], isbn=post['isbn'],
                     description=post['description'], date_entree=date, editeur=editeur,
                     prefix=post['prefix'], is_manga=post[is_manga], auteurs=auteurs,
@@ -183,7 +183,7 @@ def get_auteur_from_db(id,nom):
     except ObjectDoesNotExist:
         return None
 
-def get_auteur_from_dbs_from_db(jAuteurs):
+def get_auteur_from_db(jAuteurs):
     auteurs = []
     try:
         for jAuteur in jAuteurs:
@@ -436,7 +436,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('date_entree') is not None:
                     volume.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') is not None:
-                    volume.auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                    volume.auteurs = get_auteur_from_db(post['auteurs'])
                 if post.get('title') is not None:
                     volume.titre = post['title']
                 if post.get('isbn') is not None:
@@ -465,7 +465,7 @@ def get_ouvrage_by_id(request, id):
                 if post.get('date_entree') is not None:
                     oneshot.date_entree = datetime.strptime(post['date_entree'], "%Y-%m-%d").date()
                 if post.get('auteurs') is not None:
-                    oneshot.auteurs = get_auteur_from_dbs_from_db(post['auteurs'])
+                    oneshot.auteurs = get_auteur_from_db(post['auteurs'])
                 if post.get('title') is not None:
                     oneshot.titre = post['title']
                 if post.get('isbn') is not None:
@@ -603,6 +603,7 @@ def get_categories_by_prefix(request, prefix):
     elif request.method == 'DELETE':
         try:
             cat = models.Categorie.objects.get(pk=prefix).delete()
+            return HttpResponse("Deleted", content_type="application/json")
         except ObjectDoesNotExist:
             return HttpResponse("KO Wrong ID", content_type="application/json")
 
@@ -649,7 +650,7 @@ def get_serie_by_id(request, id):
                     cat = models.Categorie.objects.get(pk=post['cat_id'])
                     serie.categorie=cat
                 except ObjectDoesNotExist:
-                    return HttpResponse("KO Wrong ID", content_type="application/json")
+                    return HttpResponse("KO Wrong cat ID", content_type="application/json")
             serie.save()
             return HttpResponse('{"id":"'+ serie.id +'"}', content_type="application/json")
         except ObjectDoesNotExist:
@@ -657,6 +658,7 @@ def get_serie_by_id(request, id):
     elif request.method == 'DELETE':
         try:
             models.Serie.objects.get(pk=id).delete()
+            return HttpResponse("Deleted", content_type="application/json")
         except ObjectDoesNotExist:
             return HttpResponse("KO Wrong ID", content_type="application/json")
 
@@ -680,11 +682,11 @@ def get_emprunts(request):
         sorted = {}
         for emprunt in emprunts:
             try:
-                sorted[emprunt.utilisateur.id].append((emprunt.ouvrage.cote, emprunt.date))
+                sorted[emprunt.utilisateur.id].append(emprunt)
             except KeyError:
-                sorted[emprunt.utilisateur.id] = [(emprunt.ouvrage.cote, emprunt.date)]
+                sorted[emprunt.utilisateur.id] = [emprunt]
 
-        return HttpResponse(str(sorted), content_type="application/json")
+        return HttpResponse(str(sorted.values()), content_type="application/json")
     elif request.method == 'POST':
         post = json.loads(request.body)
         try:
@@ -766,7 +768,7 @@ def get_postes(request):
     elif request.method == 'POST':
         try:
             post = json.loads(request.body)
-            poste = models.Serie(nom=post['name'], droits=['droits'])
+            poste = models.Serie(nom=post['name'], droits=post['droits'])
             poste.save()
             return HttpResponse('{"id":"'+ poste.id +'"}', content_type="application/json")
         except KeyError as e:
@@ -792,6 +794,99 @@ def get_poste_by_id(request, id):
     elif request.method == 'DELETE':
         try:
             models.Poste.objects.get(pk=id).delete()
+            return HttpResponse("Deleted", content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+
+@require_http_methods(['GET', 'POST'])
+@require_actif
+def get_plans(request):
+    if request.method == 'GET':
+        plans = models.Plan.objects.all()
+        return HttpResponse(restify(plans), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            plan = models.Plan(nom=post['name'], nb_ouvrage=post['nb_ouvrage'], duree=post['duree'],
+                              prix=post['prix'])
+            plan.save()
+            return HttpResponse('{"id":"'+ plan.id +'"}', content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+
+@require_http_methods(['GET', 'PUT', 'DELETE'])
+@require_actif
+def get_plan_by_id(request, id):
+    if request.method == 'GET':
+        return HttpResponse(restify(models.Plan.objects.get(pk=id)), content_type="application/json")
+    elif request.method == 'PUT':
+        post = json.loads(request.body)
+        try:
+            plan = models.Plan.objects.get(pk=id)
+            if post.get('name') is not None:
+                plan.nom=post['name']
+            if post.get('nb_ouvrage') is not None:
+                plan.nb_ouvrage=post['nb_ouvrage']
+            if post.get('duree') is not None:
+                plan.duree=post['duree']
+            if post.get('prix') is not None:
+                plan.prix=post['prix']
+            plan.save()
+            return HttpResponse('{"id":"'+ plan.id +'"}', content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            models.Plan.objects.get(pk=id).delete()
+            return HttpResponse("Deleted", content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+
+@require_http_methods(['GET', 'POST'])
+@require_actif
+def get_abonnements(request):
+    if request.method == 'GET':
+        abos = models.Abonnement.objects.all()
+        return HttpResponse(restify(abos), content_type="application/json")
+    elif request.method == 'POST':
+        try:
+            post = json.loads(request.body)
+            user = models.Utilisateur.objects.get(pk=post['user_id'])
+            plan = models.Plan.objects.get(pk=post['plan_id'])
+            abo = models.Abonnement(utilisateur=user, plan=plan, date_deb=date.today())
+            abo.save()
+            return HttpResponse('{"id":"'+ abo.id +'"}', content_type="application/json")
+        except KeyError as e:
+            return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
+        except ObjectDoesNotExist as e:
+            return HttpResponse("KO Wrong "+str(e)+" ID", content_type="application/json")
+
+@require_http_methods(['GET', 'PUT', 'DELETE'])
+@require_actif
+def get_abonnement_by_id(request, id):
+    if request.method == 'GET':
+        return HttpResponse(restify(models.Abonnement.objects.get(pk=id)), content_type="application/json")
+    elif request.method == 'PUT':
+        post = json.loads(request.body)
+        try:
+            abo = models.Abonnement.objects.get(pk=id)
+            if post.get('plan_id') is not None:
+                try:
+                    plan = models.Plan.objects.get(pk=post['plan_id'])
+                    abo.plan=plan
+                except ObjectDoesNotExist:
+                    return HttpResponse("KO Wrong plan ID", content_type="application/json")
+            abo.save()
+            return HttpResponse('{"id":"'+ abo.id +'"}', content_type="application/json")
+        except ObjectDoesNotExist:
+            return HttpResponse("KO Wrong ID", content_type="application/json")
+    elif request.method == 'DELETE':
+        try:
+            abo = models.Abonnement.objects.get(pk=id)
+            aboH = models.AbonnementHistorique(utilisateur=abo.utilisateur, plan=abo.plan, date_deb=abo.date_deb)
+            aboH.save()
+            abo.delete()
+            return HttpResponse("Deleted and archived", content_type="application/json")
         except ObjectDoesNotExist:
             return HttpResponse("KO Wrong ID", content_type="application/json")
 
@@ -822,5 +917,6 @@ def get_actif_by_id(request, id):
     elif request.method == 'DELETE':
         try:
             models.Actif.objects.get(pk=id).delete()
+            return HttpResponse("Deleted", content_type="application/json")
         except ObjectDoesNotExist:
             return HttpResponse("KO Wrong ID", content_type="application/json")

@@ -104,6 +104,11 @@ App.LoggedBookRoute = Ember.Route.extend({
     model: function(params){
 	return App.Book.find(params.book_id);
     },
+    setupController: function (controller, model) {
+	controller.set('book', model);
+	//console.log();
+	controller.set('serie', App.Serie.find(model.get('serie_id')));
+    },
     renderTemplate: function () {
 	this.render('logged/book', {
 	    into: 'application',
@@ -382,6 +387,26 @@ App.Book.reopenClass({
     primaryKey: 'cote',
     url: function () {
 	return '/books';
+    },
+    args: function (conf) {
+	var ret = '?';
+	
+	if (conf && conf.all) {
+	    ret += 'limit=20';
+	}	    
+	return ret;
+    }
+});
+
+App.Serie = DS.Model.extend({
+    "nom": DS.attr('string'),
+    "prefix": DS.attr('string'), 
+    "categorie_id": DS.attr('string') 
+});
+
+App.Serie.reopenClass({
+    url: function () {
+	return '/series';
     },
     args: function (conf) {
 	var ret = '?';

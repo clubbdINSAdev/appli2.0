@@ -57,8 +57,14 @@
 	<script type="text/x-handlebars" data-template-name="logged/book">
 	  {% verbatim %}
 	  {{#linkTo "logged.books"}}Back{{/linkTo}}
+	  {{#with book}}
 	  <h1>{{titre}}</h1>
 	  <p>{{description}}</p>
+	  {{/with}}
+
+	  {{#with serie}}
+	  <p>Serie: {{nom}}</p>
+	  {{/with}}
 	  {% endverbatim %}
 	</script>
 

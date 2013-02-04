@@ -70,7 +70,7 @@
 	    {% verbatim %}
 	     {{#each book in books}}
 	       {{#with book}}
-	      <tr><td>{{cote}}</td><td>{{titre}}</td><td>{{#linkTo "logged.book" this}}view {{/linkTo}}</td></tr>
+	      <tr><td>{{cote}}</td><td>{{titre}}</td><td>{{#linkTo "logged.book" this}}<button class="btn">view</button>{{/linkTo}}</td></tr>
 	       {{/with }}
 	     {{/each }}
 	    {% endverbatim %}
@@ -256,9 +256,10 @@
                             <li class="active"><a {{action goToHome}}>Home</a></li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Navigation <b class="caret"></b></a>
-                                <ul class="dropdown-menu">
+				<ul class="dropdown-menu">
                                     <li>{{#linkTo "logged.users"}}Users{{/linkTo}}</li>
 				    <li>{{#linkTo "logged.books"}}Books{{/linkTo}}</li>
+				    <li>{{#linkTo "loans"}}Loans{{/linkTo}}</li>
                                 </ul>
                             </li>
                         </ul>

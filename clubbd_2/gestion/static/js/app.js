@@ -38,7 +38,7 @@ App.IndexRoute = Ember.Route.extend({
 	}
     },
     setupController: function(controller, model) {
-	controller.set('loggedUser', sessionStorage.get('api_key') || false);
+	controller.set('loggedUser', sessionStorage.getItem('api_key') || false);
     },
     renderTemplate: function() {
 	this.render('home', {

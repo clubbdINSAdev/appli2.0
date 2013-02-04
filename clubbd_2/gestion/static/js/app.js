@@ -106,7 +106,6 @@ App.LoggedBookRoute = Ember.Route.extend({
     },
     setupController: function (controller, model) {
 	controller.set('book', model);
-	//console.log();
 	controller.set('serie', App.Serie.find(model.get('serie_id')));
     },
     renderTemplate: function () {

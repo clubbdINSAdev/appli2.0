@@ -199,12 +199,18 @@ App.LoansNewController = Em.Controller.extend({
 	
 	return _users;
     },
-
     _then: function () {
 	var _then = Date.now();
 	this.set('then', _then);
 
 	return _then;
+    },
+    _curBooks: function () {
+	var _books = Em.ArrayController.create();
+	_books.set('content', []);
+	this.set('curBooks', _books);
+
+	return _books;
     },
 
     focusUsers: function () {
@@ -242,7 +248,20 @@ App.LoansNewController = Em.Controller.extend({
 
 	    this.set('books', filtered_books);
 	}
-    }.observes('bookSearch')
+    }.observes('bookSearch'),
+
+    setUser: function (user) {
+	this.set('curUser', user);
+	this.set('userSearch', user.get('prenom'));
+    },
+    addBook: function (book) {
+	var books = this.get('curBooks') || this._curBooks();
+	books.addObject(book);
+    },
+    saveLoan: function () {
+	console.log('saveLoans');
+	// TODO
+    }
 });
 
 App.UserSearchField = Em.TextField.extend();
@@ -453,19 +472,19 @@ App.adapter = DS.Adapter.create({
 	});
     },
     // Write
-    createRecord: function(store, type, model) {
+    createRecord: function(store, type, array) {
 	console.log('create');
-	var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
-	self = this;
+	// var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
+	// self = this;
 
-	console.log(url);
-	jQuery.getJSON(url, function(data) {
-	    console.log(type.name);
-	    var payload = {};
+	// console.log(url);
+	// jQuery.getJSON(url, function(data) {
+	//     console.log(type.name);
+	//     var payload = {};
 
 	    
-	    self.didFindAll(store, type, payload);
-	});
+	//     self.didCreateRecords(store, type, array);
+	// });
     }
 });
 
@@ -478,9 +497,9 @@ App.ready = function () {
     var cur = sessionStorage.getItem('current');
     if (cur) {    
 	cur = JSON.parse(cur);
-	console.log('Already logged in. (as '+cur.lastName+')')
+	console.log('Already logged in. (as '+cur.lastName+')');
 	App.Connected.updateCurrent(cur);
     }
-}
+};
 
 App.initialize();

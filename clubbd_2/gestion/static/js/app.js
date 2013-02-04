@@ -37,6 +37,9 @@ App.IndexRoute = Ember.Route.extend({
 	    this.transitionTo('logged');
 	}
     },
+    setupController: function(controller, model) {
+	controller.set('loggedUser', sessionStorage.get('api_key') || false);
+    },
     renderTemplate: function() {
 	this.render('home', {
 	    outlet: 'main'
@@ -89,7 +92,7 @@ App.LoggedBooksRoute = Ember.Route.extend({
     renderTemplate: function () {
 	this.render('logged/books', {
 	    into: 'application',
-	    outlet: 'main',
+	    outlet: 'main'
 	});
     }
 });
@@ -236,18 +239,25 @@ App.LoansNewController = Em.Controller.extend({
     updateBookSearch: function () {
 	var then = this.get('then') || this._then(),
 	    now = Date.now(),
-	    filtered_books;
+	    timeOut = this.get('timeOut'),
+	    filtered_books,
+	    self = this;
+
+	clearTimeout(timeOut);
 	
-	if (now > then + 100) {
-	    this.set('then', now);
-	    if (this.bookSearch != '' ) {
-		filtered_books = App.Book.find({titre: this.bookSearch});
+	timeOut = setTimeout(function () {
+	    self.set('then', now);
+	    if (self.bookSearch != '' ) {
+		filtered_books = App.Book.find({titre: self.bookSearch});
 	    } else {
 		filtered_books = App.Book.find();
 	    }
 
-	    this.set('books', filtered_books);
-	}
+	    self.set('books', filtered_books);
+	}, 700);
+
+	this.set('timeOut', timeOut);
+	
     }.observes('bookSearch'),
 
     setUser: function (user) {

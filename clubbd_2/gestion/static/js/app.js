@@ -157,12 +157,15 @@ App.LoansRoute = Em.Route.extend({
 	    into: 'application',
 	    outlet: 'main'
 	});
-    } 
+    }
 });
 
 App.LoansIndexRoute = Em.Route.extend({
     enter: function () {
 	console.log("Entered loans.index route.");
+    },
+    redirect: function () {
+	this.transitionTo('loans.current');
     }
 });
 
@@ -171,10 +174,18 @@ App.LoansNewRoute = Em.Route.extend({
 	console.log('Enter the matrix.');
     },
     setupController: function (controller, model) {
+	controller.set('isNew', true);
 	controller.set('users', App.User.find());
 	controller.set('books', App.Book.find()); 
     }
 });
+
+App.LoansNewRoute = Em.Route.extend({
+    setupController: function (controller, model) {
+	controller.set('isCurrent', true);
+    }
+});
+
 
 App.Router.map(function() {
     this.resource('logged', function() {
@@ -187,6 +198,7 @@ App.Router.map(function() {
     
     this.resource('loans', function () {
 	this.route('new');
+	this.route('current');
     });
 });
 

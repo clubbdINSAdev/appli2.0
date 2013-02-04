@@ -138,8 +138,8 @@
           <div class="navbar">
 	    <div class="navbar-inner">
 	      <ul class="nav">
-		<li class="active"><a href="#">Current loans</a></li>
-		<li>{{#linkTo "loans.new"}}New loan{{/linkTo}}</a></li>
+		<li {{bindAttr class="isCurrent:active"}}>{{#linkTo "loans.current"}}Current loans{{/linkTo}}</a></li>
+		<li {{bindAttr class="isNew:active"}}>{{#linkTo "loans.new"}}New loan{{/linkTo}}</a></li>
 		<li><a href="#">Moar</a></li>
 	      </ul>
 	    </div>
@@ -207,6 +207,19 @@
 	    </div>
           {% endverbatim %}
 	</script>
+
+	<!-- Loans New -->
+	<script type="text/x-handlebars" data-template-name="loans/current">
+	  {% verbatim %}
+	  <h1>Loans</h1>
+	  {{#each loan in loans}}
+	  {{#with loan}}
+	  <!-- todo -->
+	  {{/with }}
+	  {{/each }}
+	  {% endverbatim %}
+	</script>
+
 
 	<!-- Logged Home -->
 	<script type="text/x-handlebars" data-template-name="loggedHome">

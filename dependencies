@@ -1,0 +1,8 @@
+-e git://github.com/django/django.git@cb9f71dd99f0e524c871830b248cf28fcacd5753#egg=Django-dev
+argparse==1.2.1
+distribute==0.6.24
+gunicorn==0.17.2
+ipython==0.13
+py-bcrypt==0.2
+selenium==2.26.0
+wsgiref==0.1.2

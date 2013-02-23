@@ -9,21 +9,24 @@ from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import MultiValueDictKeyError
 
-def json_date(obj):
+def json_date_serializer(obj):
+    return obj.isoformat()
+    
+def custom_serializer(obj):
     if type(obj) == datetime.date:
-        return obj.isoformat()
+        return json_date_serializer(obj)
+    elif 'rest_api.models' in str(type(obj)):
+        return obj.id
     else:
-        raise TypeError
+        raise TypeError('Could not serialize '+ str(type(obj)))
 
 def restify_one(o, jsonify):
     del o.__dict__['_state']
 
     if jsonify:
-        return json.dumps(o.__dict__, default=json_date)
+        return json.dumps(o.__dict__, default=custom_serializer)
     else:
         return o.__dict__
-
-    return json.dumps(o.__dict__, default=json_date)
 
 
 def restify_list(l, jsonify):
@@ -33,12 +36,12 @@ def restify_list(l, jsonify):
         res += [o.__dict__]
 
     if jsonify:
-        return json.dumps(res, default=json_date)
+        return json.dumps(res, default=custom_serializer)
     else:
         return res
 
 def restify(o, json=True):
-    if "QuerySet" in str(type(o)):
+    if "QuerySet" in str(type(o)) or "list" in str(type(o)):
         return restify_list(o, json)
     else:
         return restify_one(o, json)
@@ -679,14 +682,16 @@ def search_series_by_categorie(request, categorie_id):
 def get_emprunts(request):
     if request.method == 'GET':
         emprunts = models.Emprunt.objects.all()
-        sorted = {}
+        sort = {}
         for emprunt in emprunts:
             try:
-                sorted[emprunt.utilisateur.id].append(emprunt)
+                sort[emprunt.utilisateur.id].append(emprunt)
             except KeyError:
-                sorted[emprunt.utilisateur.id] = [emprunt]
+                sort[emprunt.utilisateur.id] = [emprunt]
 
-        return HttpResponse(str(sorted.values()), content_type="application/json")
+        res = reduce(lambda x,y: x + y, map(lambda x: restify(x), sort.values()))
+
+        return HttpResponse(res, content_type="application/json")
     elif request.method == 'POST':
         post = json.loads(request.body)
         try:

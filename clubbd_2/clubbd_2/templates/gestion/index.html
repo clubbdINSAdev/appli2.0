@@ -90,17 +90,17 @@
 	  <div class="well span6 offset3">
 	    <h1>Update</h1>
 	    <form>
-	      <fieldset>
+	      <fieldset id="user_info">
 		{{#with user}}
-		<label>Nom:</label><input type="text" name="lastname" {{bindAttr value="nom"}}>
-		<label>Prenom:</label><input type="text" name="firstname" {{bindAttr value="prenom"}}>
-		<label>Email:</label><input type="email" name="email" {{bindAttr value="email"}}>
+		<label>Nom:</label><input type="text" name="nom" {{bindAttr value="nom"}}>
+		<label>Prenom:</label><input type="text" name="prenom" {{bindAttr value="prenom"}}>
+		<label>Email:</label><input type="email" name="mail" {{bindAttr value="mail"}}>
 		<label>Adresse:</label><input type="text" name="adresse" {{bindAttr value="adresse"}} >
 		{{/with}}
 	      </fieldset>
 	    </form>
 	    <hr>
-	    <button {{action updateUser this}} class="btn btn-primary pull-right">Update user</button>
+	    <button {{action updateUser user}} class="btn btn-primary pull-right">Update user</button>
 	  </div>
 	  {% endverbatim %}
 	</script>

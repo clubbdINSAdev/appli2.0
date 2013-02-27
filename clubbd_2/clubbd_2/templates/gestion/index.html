@@ -91,10 +91,12 @@
 	    <h1>Update</h1>
 	    <form>
 	      <fieldset>
+		{{#with user}}
 		<label>Nom:</label><input type="text" name="lastname" {{bindAttr value="nom"}}>
 		<label>Prenom:</label><input type="text" name="firstname" {{bindAttr value="prenom"}}>
 		<label>Email:</label><input type="email" name="email" {{bindAttr value="email"}}>
 		<label>Adresse:</label><input type="text" name="adresse" {{bindAttr value="adresse"}} >
+		{{/with}}
 	      </fieldset>
 	    </form>
 	    <hr>

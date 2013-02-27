@@ -141,9 +141,12 @@ App.LoggedUserRoute = Ember.Route.extend({
     enter: function () {
 	console.log("user");
     },
-    model: function(params) {
+    model: function (params) {
 	return App.User.find(params.user_id);
     },
+    setupController: function (controller, model) {
+	controller.set('user', model);
+    }, 
     renderTemplate: function () {
 	this.render('logged/user', {
 	    into: 'application',
@@ -204,6 +207,13 @@ App.Router.map(function() {
 	this.route('new');
 	this.route('current');
     });
+});
+
+App.LoggedUserController = Em.Controller.extend({
+    updateUser: function (user) {
+	console.log('Update user.');
+	console.log(typeof(user));
+    }
 });
 
 App.LoansNewController = Em.Controller.extend({

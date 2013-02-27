@@ -232,7 +232,7 @@ def ouvrage_heavy_lifting(query, args=None, limit=None):
         except:
             limit = len(volumes) + len(oneshots)
 
-    return HttpResponse(json.dumps((volumes + oneshots)[:limit], default=json_date), content_type="application/json")
+    return HttpResponse(json.dumps((volumes + oneshots)[:limit], default=custom_serializer), content_type="application/json")
 
 def require_api_key(func):
     def wrapper(request, *args, **kwargs):

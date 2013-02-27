@@ -554,6 +554,12 @@ App.adapter = DS.Adapter.create({
 	    
 	//     self.didCreateRecords(store, type, array);
 	// });
+    },
+    updateRecord: function(store, type, record) {
+	console.log('update');
+    },
+    updateRecords: function(store, type, records) {
+	console.log('updates !!');
     }
 });
 

@@ -383,7 +383,7 @@ App.Book = DS.Model.extend({
 });
 
 App.Book.reopenClass({
-    primaryKey: 'cote',
+    //primaryKey: 'cote',
     url: function () {
 	return '/books';
     },

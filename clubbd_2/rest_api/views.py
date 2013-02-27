@@ -218,6 +218,7 @@ def ouvrage_heavy_lifting(query, args=None, limit=None):
             res['in_serie'] = False
 
         res['emprunte'] = book_out(el)
+        res['id'] = res['cote']
 
         return res
 

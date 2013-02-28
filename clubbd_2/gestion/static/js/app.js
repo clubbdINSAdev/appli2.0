@@ -120,10 +120,21 @@ App.LoggedUsersRoute = Ember.Route.extend({
     enter: function () {
 	console.log("Entered logged.users route.");
     },
-    addUser: function () {
-	console.log("Add user");
-	$('#user_modal').modal({show: false});
-	var new_user = $('#new_user');
+    events: {
+	addUser: function () {
+	    console.log('New user.');
+	    var new_user_dom = $('#new_user'),
+		new_user = {};
+	    
+	    new_user_dom.find('input').each(function () {
+		var self = $(this);
+
+		new_user[self.attr('name')] = self.val();
+	    });
+	    
+	    App.User.createRecord(new_user);
+	    this.transitionTo('logged.user', App.User.find(new_user.id));
+	}
     },
     model: function () {
 	return  App.User.find();
@@ -152,7 +163,7 @@ App.LoggedUserRoute = Ember.Route.extend({
 	    into: 'application',
 	    outlet: 'main'
 	});
-    } 
+    }
 });
 
 App.LoansRoute = Em.Route.extend({

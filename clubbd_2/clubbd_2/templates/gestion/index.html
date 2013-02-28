@@ -125,15 +125,13 @@
 		 </tr>
 	       {{/with }}
 	     {{/each }}
-	      <tr>
-		<form id="new_user">
-		  <td><input type="text" name="id" value="" placeholder="id"/></td>
-		  <td>
-		    <input type="text" name="lastName" value="" placeholder="last name"/>
-		    <input type="text" name="firstName" value="" placeholder="first name"/>
-		  </td>
-		  <td><button {{action addUser}} class="btn btn-primary"><i class="icon-plus-sign"></i>&nbspAdd</button></td>
-		</form>
+	      <tr id="new_user">
+		<td><input type="text" name="id" value="" placeholder="id"/></td>
+		<td>
+		  <input type="text" name="nom" value="" placeholder="nom"/>
+		  <input type="text" name="prenom" value="" placeholder="prenom"/>
+		</td>
+		<td><button {{action addUser}} class="btn btn-primary"><i class="icon-plus-sign"></i>&nbspAdd</button></td>
 	      </tr>
 	    </table>
 	    {% endverbatim %}

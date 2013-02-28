@@ -215,17 +215,14 @@ App.LoggedUserController = Em.Controller.extend({
 	var upd_dom = $('#user_info'),
 	    upd_obj = {};
 
-	upd_dom.children('input').each(function () { 
+	upd_dom.children('input').each(function () {
 	    var self = $(this);
 	    upd_obj[self.attr('name')] = self.val();
 	});
 
-	console.log(upd_obj);
-
 	user.setProperties(upd_obj);
 	console.log(user.get('isSaving'));
 	console.log(user.get('isDirty'));
-	console.log(user.get('adresse'));
     }
 });
 

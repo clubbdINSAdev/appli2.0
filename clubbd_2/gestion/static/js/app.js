@@ -519,7 +519,6 @@ App.adapter = DS.Adapter.create({
 
 	console.log(url);
 	jQuery.getJSON(url, function(data) {
-	    console.log(type.name);
 	    var payload = {};
 
 	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;
@@ -533,7 +532,6 @@ App.adapter = DS.Adapter.create({
 
 	console.log(url);
 	jQuery.getJSON(url, function(data) {
-	    console.log(type.name);
 	    var payload = {};
 
 	    payload[type.toString().split('.')[1].toLowerCase()+'s'] = data;

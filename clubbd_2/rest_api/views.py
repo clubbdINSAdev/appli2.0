@@ -65,11 +65,11 @@ def create_user(post):
         pwd = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(8))
         print "TODO: mail this pwd to the user "+pwd
         a = models.Authentification(
-            mail = post['mail'],
             salt = s,
             hash = bcrypt.hashpw(pwd, s),
             api_key = bcrypt.hashpw("So long and thanks for the fish!", s),
-            utilisateur = u)
+            utilisateur = u
+            )
         a.save()
         u.save()
         return u
@@ -329,7 +329,7 @@ def get_user_by_id(request, id):
             return HttpResponse("KO", content_type="application/json")
 
     elif request.method == 'PUT':
-        post = json.loads(request.body)
+        post = request.POST
         u = None
         try:
             u = models.Utilisateur.get(pk=id)

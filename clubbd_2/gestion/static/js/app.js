@@ -238,8 +238,11 @@ App.LoggedUserController = Em.Controller.extend({
 	});
 
 	user.setProperties(upd_obj);
-	console.log(user.get('isSaving'));
-	console.log(user.get('isDirty'));
+	App.adapter.commit(App.Store, {
+	    updated: [user],
+	    deleted: [],
+	    created: []
+	})
     }
 });
 
@@ -580,9 +583,27 @@ App.adapter = DS.Adapter.create({
     },
     updateRecord: function(store, type, record) {
 	console.log('update');
-    },
-    updateRecords: function(store, type, records) {
-	console.log('updates !!');
+	var url = this.url + this.version + type.url() + '/' + record.get('id') + type.args({all: true}),
+	self = this;
+
+	data = this.serialize(record);
+	data.id = record.get('id');
+	
+	console.log(data);
+	console.log(url);
+	$.ajax({
+	    url: url,
+	    dataType: 'json',
+	    type: 'PUT',
+	    data: data,
+	    beforeSend: function(xhr, settings) {
+		console.log($.cookie('csrftoken'));
+		xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            }
+	}).done(function(data) {
+	    console.log('success');	    
+	    self.didSaveRecord(store, type, record);
+	});
     }
 });
 

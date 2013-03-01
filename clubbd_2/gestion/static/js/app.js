@@ -132,7 +132,13 @@ App.LoggedUsersRoute = Ember.Route.extend({
 		new_user[self.attr('name')] = self.val();
 	    });
 	    
-	    App.User.createRecord(new_user);
+	    var user = App.User.createRecord(new_user);
+	    App.adapter.commit(App.Store, {
+		created: [user],
+		updated: [],
+		deleted: []
+	    });
+
 	    this.transitionTo('logged.user', App.User.find(new_user.id));
 	}
     },
@@ -499,6 +505,7 @@ App.Loan.reopenClass({
 App.adapter = DS.Adapter.create({
     url: '/rest/v',
     version: 1,
+    serializer: DS.JSONSerializer,
     find: function (store, type, id) {
 	var url = this.url + this.version + type.url() + '/' + id + type.args(),
 	self = this;
@@ -547,19 +554,29 @@ App.adapter = DS.Adapter.create({
 	});
     },
     // Write
-    createRecord: function(store, type, array) {
+    createRecord: function(store, type, record) {
 	console.log('create');
-	// var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
-	// self = this;
+	var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
+	self = this;
 
-	// console.log(url);
-	// jQuery.getJSON(url, function(data) {
-	//     console.log(type.name);
-	//     var payload = {};
-
-	    
-	//     self.didCreateRecords(store, type, array);
-	// });
+	data = this.serialize(record);
+	data.id = record.get('id');
+	
+	console.log(data);
+	console.log(url);
+	$.ajax({
+	    url: url,
+	    dataType: 'json',
+	    type: 'POST',
+	    data: data,
+	    beforeSend: function(xhr, settings) {
+		console.log($.cookie('csrftoken'));
+		xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            }
+	}).done(function(data) {
+	    console.log('success');	    
+	    self.didCreateRecord(store, type, record);
+	});
     },
     updateRecord: function(store, type, record) {
 	console.log('update');

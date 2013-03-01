@@ -311,7 +311,7 @@ def get_users(request):
         users = models.Utilisateur.objects.all()
         return HttpResponse(restify(users), content_type="application/json")
     elif request.method == 'POST':
-        post = json.loads(request.body)
+        post = request.POST
         if user_exists(post['id']):
             return HttpResponse("KO Exists", content_type="application/json")
         else:

@@ -319,6 +319,14 @@ def get_users(request):
             return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
 
 
+def extract(body):
+    res = {}
+    for pair in body.split('&'):
+        key, value = pair.split('=')
+        res[key] = value
+
+    return res
+
 @require_http_methods(["GET", "PUT", "DELETE"])
 @require_actif_strict
 def get_user_by_id(request, id):
@@ -329,7 +337,7 @@ def get_user_by_id(request, id):
             return HttpResponse("KO", content_type="application/json")
 
     elif request.method == 'PUT':
-        post = request.POST
+        post = extract(request.body)
         u = None
         try:
             u = models.Utilisateur.objects.get(pk=id)

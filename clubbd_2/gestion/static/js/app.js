@@ -562,7 +562,7 @@ App.adapter = DS.Adapter.create({
 	var url = this.url + this.version + type.url() + '/all'+ type.args({all: true}),
 	self = this;
 
-	data = this.serialize(record);
+	var data = this.serialize(record);
 	data.id = record.get('id');
 	
 	console.log(data);
@@ -586,7 +586,7 @@ App.adapter = DS.Adapter.create({
 	var url = this.url + this.version + type.url() + '/' + record.get('id') + type.args({all: true}),
 	self = this;
 
-	data = this.serialize(record);
+	var data = this.serialize(record);
 	data.id = record.get('id');
 	
 	console.log(data);

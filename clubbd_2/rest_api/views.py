@@ -9,6 +9,15 @@ from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import MultiValueDictKeyError
 
+
+def extract(body):
+    res = {}
+    for pair in body.split('&'):
+        key, value = pair.split('=')
+        res[key] = value
+
+    return res
+
 def json_date_serializer(obj):
     return obj.isoformat()
     
@@ -318,14 +327,6 @@ def get_users(request):
             u = create_user(post)
             return HttpResponse('{"id":"'+str(u.id)+'"}', content_type="application/json")
 
-
-def extract(body):
-    res = {}
-    for pair in body.split('&'):
-        key, value = pair.split('=')
-        res[key] = value
-
-    return res
 
 @require_http_methods(["GET", "PUT", "DELETE"])
 @require_actif_strict

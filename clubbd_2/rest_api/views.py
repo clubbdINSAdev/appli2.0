@@ -332,7 +332,7 @@ def get_user_by_id(request, id):
         post = request.POST
         u = None
         try:
-            u = models.Utilisateur.get(pk=id)
+            u = models.Utilisateur.objects.get(pk=id)
             if post.get('mail') is not None:
                 u.mail = post['mail']
             if post.get('nom') is not None:

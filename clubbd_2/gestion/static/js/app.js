@@ -584,7 +584,6 @@ App.adapter = DS.Adapter.create({
 	    type: 'POST',
 	    data: data,
 	    beforeSend: function(xhr, settings) {
-		console.log($.cookie('csrftoken'));
 		xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             }
 	}).done(function(data) {
@@ -608,7 +607,6 @@ App.adapter = DS.Adapter.create({
 	    type: 'PUT',
 	    data: data,
 	    beforeSend: function(xhr, settings) {
-		console.log($.cookie('csrftoken'));
 		xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             }
 	}).done(function(data) {
@@ -626,7 +624,6 @@ App.adapter = DS.Adapter.create({
 	    url: url,
 	    type: 'DELETE',
 	    beforeSend: function(xhr, settings) {
-		console.log($.cookie('csrftoken'));
 		xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             }
 	}).done(function(data) {

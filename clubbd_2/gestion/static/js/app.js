@@ -140,6 +140,17 @@ App.LoggedUsersRoute = Ember.Route.extend({
 	    });
 
 	    this.transitionTo('logged.user', App.User.find(new_user.id));
+	},
+	removeUser: function (id) {
+	    console.log('Remove user '+id);
+	    var user = App.User.find(id);
+	    
+	    user.deleteRecord();
+	    App.adapter.commit(App.Store, {
+		created: [],
+		updated: [],
+		deleted: [user]
+	    });
 	}
     },
     model: function () {
@@ -242,7 +253,7 @@ App.LoggedUserController = Em.Controller.extend({
 	    updated: [user],
 	    deleted: [],
 	    created: []
-	})
+	});
     }
 });
 
@@ -601,7 +612,25 @@ App.adapter = DS.Adapter.create({
 		xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             }
 	}).done(function(data) {
-	    console.log('success');	    
+	    console.log('success');
+	    self.didSaveRecord(store, type, record);
+	});
+    },
+    deleteRecord: function (store, type, record) {
+	console.log('delete');
+	var url = this.url + this.version + type.url() + '/' + record.get('id') + type.args({all: true}),
+	    self = this;
+	
+	console.log(url);
+	$.ajax({
+	    url: url,
+	    type: 'DELETE',
+	    beforeSend: function(xhr, settings) {
+		console.log($.cookie('csrftoken'));
+		xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            }
+	}).done(function(data) {
+	    console.log('success');
 	    self.didSaveRecord(store, type, record);
 	});
     }

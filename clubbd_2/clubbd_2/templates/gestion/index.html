@@ -119,7 +119,8 @@
 	     {{#each user in controller}}
 	       {{#with user}}
 	         <tr><td>{{id}}</td><td>{{prenom}} {{nom}}</td>
-		   <td><button class="btn btn-danger"><i class="icon-remove-circle"></i></button>
+		   <td>
+		     <button {{action removeUser id}} class="btn btn-danger"><i class="icon-remove-circle"></i></button>
 		     {{#linkTo "logged.user" this}}<button class="btn btn-primary"><i class="icon-edit"></i></button>{{/linkTo}}
 		   </td>
 		 </tr>

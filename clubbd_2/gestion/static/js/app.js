@@ -28,6 +28,12 @@ var App = Ember.Application.create({
 });
 
 App.IndexRoute = Ember.Route.extend({
+    events: {
+	logOut: function () {
+	    sessionStorage.removeItem('current');
+	    this.transitionTo('index');
+	}
+    },
     enter: function () {
 	console.log('Entered index route.');
     },
@@ -67,6 +73,12 @@ App.LoggedRoute = Em.Route.extend({
 App.LoggedIndexRoute = Em.Route.extend({
     enter: function() {
 	App.alert('You are logged in !', 'success');
+    },
+    model: function () {
+	return App.Connected.current();
+    },
+    setupController: function (controller, model) {
+	controller.set('connectedUser', model);
     },
     renderTemplate: function () {
 	this.render('loggedHome', {
@@ -372,8 +384,6 @@ App.LoginFormView = Em.View.extend({
 	      form.children('input[type=password]').val(), 
 	      function (json) {
 		  console.log("got key");
-		  json.firstName = json.prenom;
-		  json.lastName = json.nom;
 		  App.Connected.updateCurrent(json);
 		  sessionStorage.setItem('current', JSON.stringify(App.Connected.current()));
 		  
@@ -398,8 +408,8 @@ App.LoginFormView = Em.View.extend({
 
 App.Connected = Em.Object.create({
     __current: Em.Object.create({
-	firstName: null,
-	lastName: null,
+	prenom: null,
+	nom: null,
 	adresse: null,
 	telephone: null,
 	mail: null,

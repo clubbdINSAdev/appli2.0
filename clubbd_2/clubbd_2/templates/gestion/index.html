@@ -45,11 +45,10 @@
 	<!-- LoginTrue -->
 	<script type="text/x-handlebars" data-template-name="loginTrue">
 	  {% verbatim %}
-	  <div id="loginGreeting" class="nav pull-right">
-	    {{#with user}}
-            <p>Hello {{prenom}} {{nom}} !</p>
-	    {{/with}}
-	  </div>
+	  <form id="loginGreeting" class="navbar-form pull-right">
+	      <label>{{#with connectedUser}} Welcome {{prenom}} {{nom}} ! {{/with}}<label>
+	      <button type="submit" class="btn" {{action "logOut"}}>Log out</button>
+	  </form>
 	  {% endverbatim %}
 	</script>
 

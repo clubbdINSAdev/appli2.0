@@ -5,8 +5,8 @@ TODO'S:
 
 var App = Ember.Application.create({
     alert: function (message, type, time) {
-	var message = message || '',
-	type = type || 'warning',
+	message = message || '';
+	type = type || 'warning';
 	time = time || 3000;
 
 	var alert = $('<div>', {

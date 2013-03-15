@@ -320,7 +320,7 @@ def get_users(request):
         users = models.Utilisateur.objects.all()
         return HttpResponse(restify(users), content_type="application/json")
     elif request.method == 'POST':
-        post = request.POST
+        post = extract(request.body)
         if user_exists(post['id']):
             return HttpResponse("KO Exists", content_type="application/json")
         else:
@@ -409,7 +409,7 @@ def get_ouvrages(request):
     if request.method == 'GET':
         return ouvrage_heavy_lifting("all", limit=request.GET.get('limit', None))
     elif request.method == 'POST':
-        post = json.loads(request.body)
+        post = extract(request.body)
         ouvrage = create_book(post)
         return HttpResponse('{"id":"'+str(ouvrage.cote)+'"}', content_type="application/json")
 
@@ -431,7 +431,7 @@ def get_ouvrage_by_id(request, id):
         return HttpResponse(restify(el), content_type="application/json")
 
     elif request.method == 'PUT':
-        post = json.loads(request.body)
+        post = extract(request.body)
         try:
             if post['in_serie']:
                 volume = models.Volume.objects.get(pk=id)
@@ -528,7 +528,7 @@ def get_editors(request):
         return HttpResponse(restify(editors), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             editor = models.Editeur(nom=post['name'])
             editor.save()
             return HttpResponse('{"id":"'+ editor.id +'"}', content_type="application/json")
@@ -556,7 +556,7 @@ def get_auteurs(request):
         return HttpResponse(restify(auteurs), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             auteur = models.Auteur(nom=post['name'])
             auteur.save()
             return HttpResponse('{"id":"'+ auteur.id +'"}', content_type="application/json")
@@ -584,7 +584,7 @@ def get_categories(request):
         return HttpResponse(restify(categories), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             cat = models.Categorie(prefix=post['prefix'], nom=post['name'])
             cat.save()
             return HttpResponse('{"id":"'+ cat.prefix +'"}', content_type="application/json")
@@ -597,7 +597,7 @@ def get_categories_by_prefix(request, prefix):
     if request.method == 'GET':
         return HttpResponse(restify(models.Categorie.objects.get(pk=prefix)), content_type="application/json")
     elif request.method == 'PUT':
-        post = json.loads(request.body)
+        post = extract(request.body)
         try:
             cat = models.Categorie.objects.get(pk=prefix)
             if post.get('prefix') is not None:
@@ -607,7 +607,7 @@ def get_categories_by_prefix(request, prefix):
             cat.save()
         except ObjectDoesNotExist:
             try:
-                post = json.loads(request.body)
+                post = extract(request.body)
                 cat = models.Categorie(prefix=post['prefix'], nom=post['name'])
                 cat.save()
                 return HttpResponse('{"id":"'+ cat.prefix +'"}', content_type="application/json")
@@ -635,7 +635,7 @@ def get_series(request):
         return HttpResponse(restify(series), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             cat = models.Categorie.objects.get(prefix=post['cat_id'])
             serie = models.Serie(nom=post['name'], prefix=['prefix'], categorie=cat)
             serie.save()
@@ -651,7 +651,7 @@ def get_serie_by_id(request, id):
     if request.method == 'GET':
         return HttpResponse(restify(models.Serie.objects.get(pk=id)), content_type="application/json")
     elif request.method == 'PUT':
-        post = json.loads(request.body)
+        post = extract(request.body)
         try:
             serie = models.Serie.objects.get(pk=id)
             if post.get('name') is not None:
@@ -703,16 +703,16 @@ def get_emprunts(request):
 
         return HttpResponse(res, content_type="application/json")
     elif request.method == 'POST':
-        post = json.loads(request.body)
+        post = extract(request.body)
         try:
-            user = models.Utilisateur.get(pk=post['user_id'])
+            user = models.Utilisateur.objects.get(pk=post['user_id'])
         except ObjectDoesNotExist:
             return HttpResponse("KO Wrong ID", content_type="application/json")
 
             try:
                 books = []
                 for ref in post['books']:
-                    book = models.Ouvrage.get(pk=ref)
+                    book = models.Ouvrage.objects.get(pk=ref)
                     books.append(book)
             except KeyError as e:
                 return HttpResponse("KO " + str(e) + " empty", content_type="application/json")
@@ -762,7 +762,7 @@ def search_emprunts_history_by_serie(request, serie_id):
 @require_http_methods(['DELETE'])
 @require_actif
 def return_book(request):
-    post = json.loads(request.body)
+    post = extract(request.body)
     try:
         o = models.Ouvrage.objects.get(pk=post['cote'])
         e = models.Emprunt.objects.get(ouvrage=o)
@@ -782,7 +782,7 @@ def get_postes(request):
         return HttpResponse(restify(postes), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             poste = models.Serie(nom=post['name'], droits=post['droits'])
             poste.save()
             return HttpResponse('{"id":"'+ poste.id +'"}', content_type="application/json")
@@ -795,7 +795,7 @@ def get_poste_by_id(request, id):
     if request.method == 'GET':
         return HttpResponse(restify(models.Poste.objects.get(pk=id)), content_type="application/json")
     elif request.method == 'PUT':
-        post = json.loads(request.body)
+        post = extract(request.body)
         try:
             poste = models.Poste.objects.get(pk=id)
             if post.get('name') is not None:
@@ -821,7 +821,7 @@ def get_plans(request):
         return HttpResponse(restify(plans), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             plan = models.Plan(nom=post['name'], nb_ouvrage=post['nb_ouvrage'], duree=post['duree'],
                               prix=post['prix'])
             plan.save()
@@ -835,7 +835,7 @@ def get_plan_by_id(request, id):
     if request.method == 'GET':
         return HttpResponse(restify(models.Plan.objects.get(pk=id)), content_type="application/json")
     elif request.method == 'PUT':
-        post = json.loads(request.body)
+        post = extract(request.body)
         try:
             plan = models.Plan.objects.get(pk=id)
             if post.get('name') is not None:
@@ -865,7 +865,7 @@ def get_abonnements(request):
         return HttpResponse(restify(abos), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             user = models.Utilisateur.objects.get(pk=post['user_id'])
             plan = models.Plan.objects.get(pk=post['plan_id'])
             abo = models.Abonnement(utilisateur=user, plan=plan, date_deb=date.today())
@@ -882,7 +882,7 @@ def get_abonnement_by_id(request, id):
     if request.method == 'GET':
         return HttpResponse(restify(models.Abonnement.objects.get(pk=id)), content_type="application/json")
     elif request.method == 'PUT':
-        post = json.loads(request.body)
+        post = extract(request.body)
         try:
             abo = models.Abonnement.objects.get(pk=id)
             if post.get('plan_id') is not None:
@@ -913,7 +913,7 @@ def get_actifs(request):
         return HttpResponse(restify(actifs), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = json.loads(request.body)
+            post = extract(request.body)
             utilisateur = models.Utilisateur.objects.get(pk=post['user_id'])
             poste = models.Poste.objects.get(pk=post['poste_id'])
             actif = models.Actif(utilisateur=utilisateur, poste=poste)

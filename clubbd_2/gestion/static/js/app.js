@@ -357,7 +357,7 @@ App.LoansNewController = Em.Controller.extend({
 
 	this.get('curBooks').forEach(function(item) {
 	    console.log(user+'-'+item.get('id'));
-	    var emprunt = App.Loan.createRecord({utilisateur: user, ouvrage: item.get('id')});
+	    var emprunt = App.Loan.createRecord({utilisateur_id: user, ouvrage_id: item.get('id')});
 
 	    App.adapter.commit(App.Store, {
 		created: [emprunt],
@@ -519,8 +519,8 @@ App.User.reopenClass({
 });
 
 App.Loan = DS.Model.extend({
-    utilisateur: DS.attr('string'),
-    ouvrage: DS.attr('string'),
+    utilisateur_id: DS.attr('string'),
+    ouvrage_id: DS.attr('string'),
     date: DS.attr('date')
 });
 

@@ -735,8 +735,8 @@ def get_emprunts(request):
     elif request.method == 'POST':
         post = request.POST
         try:
-            user = models.Utilisateur.objects.get(pk=post['utilisateur'])
-            book = models.Ouvrage.objects.get(pk=post['ouvrage'])
+            user = models.Utilisateur.objects.get(pk=post['utilisateur_id'])
+            book = models.Ouvrage.objects.get(pk=post['ouvrage_id'])
             e = models.Emprunt(utilisateur=user, ouvrage=book, date=datetime.date.today())
             e.save()
 

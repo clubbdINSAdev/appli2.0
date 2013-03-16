@@ -1,4 +1,4 @@
-import models, json
+import models, json, urllib
 from django.db.models import Q
 from django.http import HttpResponse
 import datetime, random, string, bcrypt
@@ -10,12 +10,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import MultiValueDictKeyError
 
 
-def extract(body):
+def extract(bodyEncoded):
+    body = urllib.unquote(bodyEncoded)
     res = {}
     for pair in body.split('&'):
         key, value = pair.split('=')
         res[key] = value
-
     return res
 
 def json_date_serializer(obj):
@@ -320,7 +320,7 @@ def get_users(request):
         users = models.Utilisateur.objects.all()
         return HttpResponse(restify(users), content_type="application/json")
     elif request.method == 'POST':
-        post = extract(request.body)
+        post = request.POST
         if user_exists(post['id']):
             return HttpResponse("KO Exists", content_type="application/json")
         else:
@@ -409,7 +409,7 @@ def get_ouvrages(request):
     if request.method == 'GET':
         return ouvrage_heavy_lifting("all", limit=request.GET.get('limit', None))
     elif request.method == 'POST':
-        post = extract(request.body)
+        post = request.POST
         ouvrage = create_book(post)
         return HttpResponse('{"id":"'+str(ouvrage.cote)+'"}', content_type="application/json")
 
@@ -528,7 +528,7 @@ def get_editors(request):
         return HttpResponse(restify(editors), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             editor = models.Editeur(nom=post['name'])
             editor.save()
             return HttpResponse('{"id":"'+ editor.id +'"}', content_type="application/json")
@@ -556,7 +556,7 @@ def get_auteurs(request):
         return HttpResponse(restify(auteurs), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             auteur = models.Auteur(nom=post['name'])
             auteur.save()
             return HttpResponse('{"id":"'+ auteur.id +'"}', content_type="application/json")
@@ -584,7 +584,7 @@ def get_categories(request):
         return HttpResponse(restify(categories), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             cat = models.Categorie(prefix=post['prefix'], nom=post['name'])
             cat.save()
             return HttpResponse('{"id":"'+ cat.prefix +'"}', content_type="application/json")
@@ -635,7 +635,7 @@ def get_series(request):
         return HttpResponse(restify(series), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             cat = models.Categorie.objects.get(prefix=post['cat_id'])
             serie = models.Serie(nom=post['name'], prefix=['prefix'], categorie=cat)
             serie.save()
@@ -703,7 +703,7 @@ def get_emprunts(request):
 
         return HttpResponse(res, content_type="application/json")
     elif request.method == 'POST':
-        post = extract(request.body)
+        post = request.POST
         try:
             user = models.Utilisateur.objects.get(pk=post['user_id'])
         except ObjectDoesNotExist:
@@ -782,7 +782,7 @@ def get_postes(request):
         return HttpResponse(restify(postes), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             poste = models.Serie(nom=post['name'], droits=post['droits'])
             poste.save()
             return HttpResponse('{"id":"'+ poste.id +'"}', content_type="application/json")
@@ -821,7 +821,7 @@ def get_plans(request):
         return HttpResponse(restify(plans), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             plan = models.Plan(nom=post['name'], nb_ouvrage=post['nb_ouvrage'], duree=post['duree'],
                               prix=post['prix'])
             plan.save()
@@ -865,7 +865,7 @@ def get_abonnements(request):
         return HttpResponse(restify(abos), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             user = models.Utilisateur.objects.get(pk=post['user_id'])
             plan = models.Plan.objects.get(pk=post['plan_id'])
             abo = models.Abonnement(utilisateur=user, plan=plan, date_deb=date.today())
@@ -913,7 +913,7 @@ def get_actifs(request):
         return HttpResponse(restify(actifs), content_type="application/json")
     elif request.method == 'POST':
         try:
-            post = extract(request.body)
+            post = request.POST
             utilisateur = models.Utilisateur.objects.get(pk=post['user_id'])
             poste = models.Poste.objects.get(pk=post['poste_id'])
             actif = models.Actif(utilisateur=utilisateur, poste=poste)

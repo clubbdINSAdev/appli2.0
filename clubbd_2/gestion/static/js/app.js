@@ -228,7 +228,11 @@ App.LoansNewRoute = Em.Route.extend({
 });
 
 App.LoansCurrentRoute = Em.Route.extend({
+    model: function (params) {
+	return App.Loan.find();
+    },
     setupController: function (controller, model) {
+	controller.set('loans', model);
 	controller.set('isCurrent', true);
     }
 });

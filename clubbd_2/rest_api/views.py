@@ -689,7 +689,7 @@ def search_series_by_categorie(request, categorie_id):
 
 @require_http_methods(['GET', 'POST'])
 @require_actif_strict
-def get_emprunts(request):
+def get_emprunts_new(request):
     if request.method == 'GET':
         emprunts = models.Emprunt.objects.all()
         sort = {}

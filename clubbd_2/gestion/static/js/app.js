@@ -621,6 +621,7 @@ App.adapter = DS.Adapter.create({
             }
 	}).done(function(data) {
 	    console.log('success');
+	    App.alert('Updated user', 'success');
 	    self.didSaveRecord(store, type, record);
 	});
     },

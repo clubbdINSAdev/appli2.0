@@ -720,7 +720,7 @@ def get_emprunts_new(request):
                 return HttpResponse("KO Wrong Book ID", content_type="application/json")
 
             for book in books:
-                e = models.Emprunt(utilisateur=user, ouvrage=book, date=date.today())
+                e = models.Emprunt(utilisateur=user, ouvrage=book, date=datetime.date.today())
                 e.save()
             return HttpResponse("OK Registerd", content_type="application/json")
 

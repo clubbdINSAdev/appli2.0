@@ -349,7 +349,18 @@ App.LoansNewController = Em.Controller.extend({
     },
     saveLoan: function () {
 	console.log('saveLoans');
-	// TODO
+	var user = this.get('curUser').get('id');
+
+	this.get('curBooks').forEach(function(item) {
+	    console.log(user+'-'+item.get('id'));
+	    var emprunt = App.Loan.createRecord({utilisateur: user, ouvrage: item.get('id')});
+
+	    App.adapter.commit(App.Store, {
+		created: [emprunt],
+		updated: [],
+		deleted: []
+	    });
+	});
     }
 });
 

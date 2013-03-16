@@ -724,6 +724,28 @@ def get_emprunts_new(request):
                 e.save()
             return HttpResponse("OK Registerd", content_type="application/json")
 
+@require_http_methods(['GET', 'POST'])
+@require_actif_strict
+def get_emprunts(request):
+    if request.method == 'GET':
+        emprunts = models.Emprunt.objects.all()
+
+        return HttpResponse(restify(emprunts), content_type="application/json")
+
+    elif request.method == 'POST':
+        post = request.POST
+        try:
+            user = models.Utilisateur.objects.get(pk=post['utilisateur'])
+            book = models.Ouvrage.objects.get(pk=post['ouvrage'])
+            e = models.Emprunt(utilisateur=user, ouvrage=book, date=datetime.date.today())
+            e.save()
+
+            return HttpResponse("OK Registerd", content_type="application/json")
+        except Exception as e:
+            print e
+
+            return HttpResponse("KO", content_type="application/json")
+
 @require_http_methods(['GET'])
 def get_emprunts_history(request):
     emprunts = models.Historique.objects.all()
